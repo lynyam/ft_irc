@@ -4,8 +4,7 @@ CXX	= c++
 CXXFLAGS= -Werror -Wall -Wextra -std=c++98
 INCLUDES= -I includes -I includes/commands
 
-SRCS	= \
-	srcs/main.cpp \
+SRCS	= srcs/main.cpp \
 	srcs/Server.cpp \
 	srcs/Client.cpp \
 	srcs/ClientManager.cpp \
@@ -35,7 +34,7 @@ all: $(NAME)
 $(NAME): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
 
-$(OBJS): $(SRCS)
+%.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 clean:
