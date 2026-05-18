@@ -43,65 +43,65 @@ const std::string&	Channel::getName() const
 
 void	Channel::addClient(Client* client)
 {
-	(void)client;
+	if (!isInvited(client->getFd()))
+		_clients.push_back(client->getFd());
 }
 
 void	Channel::removeClient(Client* client)
 {
-	(void)client;
+	_clients.erase(client);
 }
 
 bool	Channel::hasClient(Client* client) const
 {
-	(void)client;
-	return (false);
+	return (_clients.find(client) != _clients.end());
 }
 
 bool	Channel::isEmpty() const
 {
-	return (true);
+	return (_clients.empty());
 }
 
 size_t	Channel::getClientCount() const
 {
-	return (0);
+	return (_clients.size());
 }
 
 void	Channel::addOperator(Client* client)
 {
-	(void)client;
+	if (!isOperator(client->getFd()))
+		_operators.push_back(client->getFd());
 }
 
 void	Channel::removeOperator(Client* client)
 {
-	(void)client;
+	_operators.erase(client);
 }
 
 bool	Channel::isOperator(Client* client) const
 {
-	(void)client;
-	return (false);
+	return (_operators.find(client) != _operators.end());
 }
 
 void	Channel::invite(Client* client)
 {
-	(void)client;
+	_invited.insert(client);
 }
 
 void	Channel::removeInvite(Client* client)
 {
-	(void)client;
+	_invited.erase(client);
 }
 
 bool	Channel::isInvited(Client* client) const
 {
-	(void)client;
-	return (false);
+	return (_invited.find(client) != _invited.end());
 }
 
 void	Channel::setTopic(const std::string& topic)
 {
-	(void)topic;
+	_topic = topic;
+	_hasTopic = true;
 }
 
 const std::string&	Channel::getTopic() const
@@ -111,90 +111,119 @@ const std::string&	Channel::getTopic() const
 
 bool	Channel::hasTopic() const
 {
-	return (false);
+	return (_hasTopic);
 }
 
 void	Channel::setInviteOnly(bool value)
 {
-	(void)value;
+	_inviteOnly = value;
 }
 
 bool	Channel::isInviteOnly() const
 {
-	return (false);
+	return (_inviteOnly);
 }
 
 void	Channel::setTopicProtected(bool value)
 {
-	(void)value;
+	_topicProtected = value;
 }
 
 bool	Channel::isTopicProtected() const
 {
-	return (true);
+	return (_topicProtected);
 }
 
 void	Channel::setKey(const std::string& key)
 {
-	(void)key;
+	_key = key;
+	_hasKey = true;
 }
 
 void	Channel::removeKey()
 {
+	_hasKey = false;
 }
 
 bool	Channel::hasKey() const
 {
-	return (false);
+	return (_hasKey);
 }
 
 bool	Channel::checkKey(const std::string& key) const
 {
-	(void)key;
-	return (false);
+	if (!_hasKey)
+		return (true);
+	return (_key == key);
 }
 
 void	Channel::setUserLimit(size_t limit)
 {
-	(void)limit;
+	_userLimit = limit;
+	_hasUserLimit = true;
 }
 
 void	Channel::removeUserLimit()
 {
+	_hasUserLimit = false;
 }
 
 bool	Channel::hasUserLimit() const
 {
-	return (false);
+	return (_hasUserLimit);
 }
 
 bool	Channel::isFull() const
 {
-	return (false);
+	if (!_hasUserLimit)
+		return (false);
+	return (_clients.size() >= _userLimit);
 }
 
 size_t	Channel::getUserLimit() const
 {
-	return (0);
+	return (_userLimit);
 }
 
 void	Channel::broadcast(const std::string& message)
 {
-	(void)message;
+	for (std::set<Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+		(*it)->appendOutput(message);// check if there's appendOutput()
 }
 
 void	Channel::broadcastExcept(Client* excluded, const std::string& message)
 {
-	(void)excluded;
-	(void)message;
+	for (std::set<Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		if (*it != excluded)
+			(*it)->appendOutput(message);
+	}
 }
 
 std::string	Channel::buildNamesList() const
 {
-	return ("");
+	std::string list;
+	for (std::set<Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		if (!list.empty())
+			list += " ";
+		if (isOperator(*it))
+			list += "@";
+		list += (*it)->getNickname();
+	}
+	return (list);
 }
 
 std::string	Channel::buildModeString() const
 {
-	return ("+");
+	std::string mode = "+";
+	if (_inviteOnly)
+		mode += "i";
+	if (_topicProtected)
+		mode += "t";
+	if (_hasKey)
+		mode += "k";
+	if (_hasUserLimit)
+		mode += "l";
+	return (mode);
 }
