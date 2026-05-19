@@ -43,13 +43,14 @@ const std::string&	Channel::getName() const
 
 void	Channel::addClient(Client* client)
 {
-	if (!isInvited(client->getFd()))
-		_clients.push_back(client->getFd());
+	_clients.insert(client);
 }
 
 void	Channel::removeClient(Client* client)
 {
 	_clients.erase(client);
+	_operators.erase(client);
+	_invited.erase(client);
 }
 
 bool	Channel::hasClient(Client* client) const
@@ -69,8 +70,8 @@ size_t	Channel::getClientCount() const
 
 void	Channel::addOperator(Client* client)
 {
-	if (!isOperator(client->getFd()))
-		_operators.push_back(client->getFd());
+	_clients.insert(client);
+	_operators.insert(client);
 }
 
 void	Channel::removeOperator(Client* client)
@@ -188,7 +189,7 @@ size_t	Channel::getUserLimit() const
 void	Channel::broadcast(const std::string& message)
 {
 	for (std::set<Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-		(*it)->appendOutput(message);// check if there's appendOutput()
+		(*it)->appendOutput(message);
 }
 
 void	Channel::broadcastExcept(Client* excluded, const std::string& message)
