@@ -60,6 +60,8 @@ Client*	ClientManager::getByNickname(const std::string& nickname)
 {
 	std::map<int, Client*>::iterator	it;
 
+	if (nickname.empty())
+		return (NULL);
 	it = _clients.begin();
 	while (it != _clients.end())
 	{
@@ -75,6 +77,8 @@ const Client*	ClientManager::getByNickname(
 {
 	std::map<int, Client*>::const_iterator	it;
 
+	if (nickname.empty())
+		return (NULL);
 	it = _clients.begin();
 	while (it != _clients.end())
 	{
