@@ -1,5 +1,3 @@
----
-```md
 # ft_irc Team Contract
 
 ## Ownership

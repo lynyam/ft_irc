@@ -30,8 +30,7 @@ void	Server::run()
 	initSocket();
 	_running = true;
 	std::cout << "ircserv listening on port " << _port << std::endl;
-	/* TODO(Leon): */
-	/* eventLoop(); */
+	eventLoop();
 }
 
 void	Server::stop()
@@ -75,9 +74,7 @@ void	Server::initSocket()
 		throw std::runtime_error("listen failed");
 	}
 	setNonBlocking(_serverFd);
-
-	std::cout << "_serverFd is " << _serverFd << std::endl;
-	sleep(100);
+	
 }
 
 void	Server::setNonBlocking(int fd)
@@ -95,6 +92,26 @@ void	Server::eventLoop()
 	 * - recv readable client fds
 	 * - send writable client fds
 	 */
+	fd_set	readSet;
+	fd_set	writeSet;
+	int		maxFd;
+	int		readyCount;
+
+	while (_running) {
+		FD_ZERO(&readSet);
+		FD_ZERO(&writeSet);
+		maxFd = _serverFd;
+		FD_SET(_serverFd, &readSet);
+		readyCount = select(maxFd + 1, &readSet, 
+			&writeSet, NULL, NULL);
+		if (readyCount < 0) {
+			throw std::runtime_error("select failed");
+		}
+		if (FD_ISSET(_serverFd, &readSet)) {
+			std::cout << "Friend are going to be accepted\n";
+			acceptClient();
+		}
+	}
 }
 
 void	Server::prepareReadSet(fd_set& readSet, int& maxFd)
@@ -123,11 +140,23 @@ void	Server::handleWritableFds(fd_set& writeSet, int maxFd)
 
 void	Server::acceptClient()
 {
+	std::cout << "You are accepted friend\n";
     /* TODO(Leon):
 	 * - accept()
 	 * - set client fd non-blocking
 	 * - _clients.addClient(clientFd)
 	 */
+	int clientFd;
+
+	clientFd = accept(_serverFd, NULL, NULL); /*to-do: test for get clientAddr*/
+	if (clientFd < 0) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
+			return ;
+		throw std::runtime_error("accept failed");
+	}
+	setNonBlocking(clientFd); //bcse the new fd don't inherit of this tag
+	_clients.addClient(clientFd);
+	std::cout << "new client connected on fd " << clientFd << std::endl;
 }
 
 void	Server::readFromClient(int fd)

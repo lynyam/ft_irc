@@ -1,5 +1,3 @@
-
-````md
 # Git Workflow
 
 ## Branch strategy
