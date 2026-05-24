@@ -3,6 +3,9 @@
 #include <stdexcept>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <cstring>
 
 Server::Server(int port, const std::string& password)
 	: _port(port),
@@ -24,9 +27,10 @@ Server::~Server()
 void	Server::run()
 {
 	std::cout << "ircserv starting on port " << _port << std::endl;
+	initSocket();
 	_running = true;
-	/* TODO(Leon): 
-    initSocket(); */
+	std::cout << "ircserv listening on port " << _port << std::endl;
+	/* TODO(Leon): */
 	/* eventLoop(); */
 }
 
@@ -44,6 +48,36 @@ void	Server::initSocket()
 	 * - listen()
 	 * - setNonBlocking(_serverFd)
 	 */
+	int	option;
+	struct sockaddr_in	address;
+
+	 _serverFd = socket(AF_INET, SOCK_STREAM, 0);
+	if (_serverFd < 0) {
+		throw std::runtime_error("socket failed");
+	}
+	option = 1;
+	if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR,
+		&option, sizeof(option))) {
+			throw std::runtime_error("setsocketopt failed");
+	}
+	//clean the structure by fill octect with zero
+	std::memset(&address, 0, sizeof(address));
+	address.sin_family = AF_INET;
+	//convert host short to host byte -> network byte
+	address.sin_port = htons(_port);
+	//convert host long to host byte -> network byte
+	address.sin_addr.s_addr = htonl(INADDR_ANY);
+	if (bind(_serverFd, reinterpret_cast<struct sockaddr*>(&address),
+		sizeof(address)) < 0) {
+		throw std::runtime_error("bind failed");
+	}
+	if (listen(_serverFd, SOMAXCONN) < 0) {
+		throw std::runtime_error("listen failed");
+	}
+	setNonBlocking(_serverFd);
+
+	std::cout << "_serverFd is " << _serverFd << std::endl;
+	sleep(100);
 }
 
 void	Server::setNonBlocking(int fd)
