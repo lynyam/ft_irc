@@ -306,7 +306,3 @@ If a merge conflict happens:
 Each teammate owns their part, but the project must stay integrated.
 
 The goal is not only to make the code compile, but to make sure every teammate understands and can defend their own implementation.
-
-````
-
----

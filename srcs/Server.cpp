@@ -101,41 +101,83 @@ void	Server::eventLoop()
 		FD_ZERO(&readSet);
 		FD_ZERO(&writeSet);
 		maxFd = _serverFd;
-		FD_SET(_serverFd, &readSet);
+		prepareReadSet(readSet, maxFd);
+		prepareWriteSet(writeSet, maxFd);
 		readyCount = select(maxFd + 1, &readSet, 
 			&writeSet, NULL, NULL);
 		if (readyCount < 0) {
 			throw std::runtime_error("select failed");
 		}
-		if (FD_ISSET(_serverFd, &readSet)) {
+		/*if (FD_ISSET(_serverFd, &readSet)) {
 			std::cout << "Friend are going to be accepted\n";
 			acceptClient();
-		}
+		}*/
+		handleReadableFds(readSet, maxFd);
+		handleWritableFds(writeSet, maxFd);
 	}
 }
 
 void	Server::prepareReadSet(fd_set& readSet, int& maxFd)
 {
-	(void)readSet;
-	(void)maxFd;
+	std::map<int, Client*>::iterator	it;
+
+	FD_SET(_serverFd, &readSet);
+	it = _clients.getAll().begin();
+	while(it != _clients.getAll().end()) {
+		FD_SET(it->first, &readSet);
+		if (it->first > maxFd) {
+			maxFd = it->first;
+		}
+		++it;
+
+	}
 }
 
 void	Server::prepareWriteSet(fd_set& writeSet, int& maxFd)
 {
-	(void)writeSet;
-	(void)maxFd;
+	std::map<int, Client*>::iterator	it;
+
+	FD_SET(_serverFd, &writeSet);
+	it = _clients.getAll().begin();
+	while(it != _clients.getAll().end()) {
+		if (it->second->hasPendingOutput()) {
+			FD_SET(it->first, &writeSet);
+			if (it->first > maxFd) {
+				maxFd = it->first;
+			}
+		}
+		++it;
+	}
 }
 
 void	Server::handleReadableFds(fd_set& readSet, int maxFd)
 {
-	(void)readSet;
-	(void)maxFd;
+	int fd;
+
+	fd = 0;
+	while (fd <= maxFd) {
+		if (FD_ISSET(fd, &readSet)) {
+			if (fd == _serverFd) {
+				acceptClient();
+			} else {
+				readFromClient(fd);
+			}
+		}
+		++fd;
+	}
 }
 
 void	Server::handleWritableFds(fd_set& writeSet, int maxFd)
 {
-	(void)writeSet;
-	(void)maxFd;
+	int fd;
+
+	fd = 0;
+	while (fd <= maxFd) {
+		if (FD_ISSET(fd, &writeSet)) {
+			writeToClient(fd);
+		}
+		++fd;
+	}
 }
 
 void	Server::acceptClient()

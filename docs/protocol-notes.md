@@ -646,5 +646,3 @@ Only `Server` performs network I/O inside the `select()` event loop.
 * RFC 2812 — IRC Client Protocol
 * RFC 1459 — Original IRC Protocol
 * Beej's Guide to Network Programming
-
-````
