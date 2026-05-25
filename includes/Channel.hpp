@@ -4,6 +4,7 @@
 # include <string>
 # include <set>
 # include <cstddef>
+# include "Client.hpp"
 
 class Client;
 
