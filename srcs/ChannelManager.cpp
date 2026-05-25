@@ -1,4 +1,4 @@
-#include "ChannelManager.hpp"
+#include "../includes/ChannelManager.hpp"
 
 ChannelManager::ChannelManager()
 	: _channels()

@@ -1,4 +1,4 @@
-#include "Channel.hpp"
+#include "../includes/Channel.hpp"
 
 Channel::Channel(const std::string& name)
 	: _name(name),
@@ -32,7 +32,7 @@ Channel::~Channel()
  * Important invariants:
  * - operators must be members
  * - removeClient() must also remove from operators and invited
- * - broadcast() must use Client::appendOutput(), 
+ * - broadcast() must use Client::appendOutput(),
  * - Channel must never call send().
  */
 
