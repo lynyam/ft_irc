@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <cstring>
+#include <cerrno>
 
 Server::Server(int port, const std::string& password)
 	: _port(port),
@@ -210,6 +211,42 @@ void	Server::readFromClient(int fd)
 	 * - while hasCompleteLine(): popLine() and dispatcher.dispatch()
 	 * - if n == 0: disconnectClient()
 	 */
+	int	bytesRead;
+	char	buffer[512];//I put 512 because IRC has un 512 by line but need to manage ddifferently
+	Client* client = _clients.getByFd(fd);
+	std::string	line;
+
+	if (!client)
+		return ;//TODO: (leon) fine grade management instead to silent managment
+	bytesRead = recv(fd, &buffer, sizeof(buffer), 0);
+	if (bytesRead > 0) {
+		client->appendInput(std::string(buffer, bytesRead));	//choice using this than std::string(buffer) bcs no garanty buffer \0 terminanted 
+		while (client->hasCompleteLine()) {
+			line = client->popLine();
+			//for my debug
+			std::cout	<< "received line: ["
+						<< line
+						<< "]\n";
+			if (!line.empty()) {
+				_dispatcher.dispatch(*client, line);
+			}
+		}
+	} else if (bytesRead == 0) {
+		std::cout << "client disconnected on fd "
+				  << fd
+				  << std::endl;
+		disconnectClient(fd);
+	} else {
+		if (errno == EAGAIN || errno == EWOULDBLOCK) {
+			return ; //TODO (leon) gestion plus explicite 
+		}
+		std::cout	<< "recv error on fd "
+					<< fd
+					<< std::endl;
+		disconnectClient(fd);
+	}
+	
+	
 }
 
 void	Server::writeToClient(int fd)
@@ -220,6 +257,7 @@ void	Server::writeToClient(int fd)
 	 * - send output buffer
 	 * - consume sent bytes
 	 */
+	
 }
 
 void	Server::disconnectClient(int fd)
@@ -231,4 +269,14 @@ void	Server::disconnectClient(int fd)
 	 * - _clients.removeClient(fd)
 	 * - close(fd)
 	 */
+	Client *client;
+
+	client = _clients.getByFd(fd);
+	if (client) {
+		_channels.removeClientFromAllChannels(client);
+	}
+	_clients.removeClient(fd);
+	if (fd > 0) {
+		close(fd);
+	}
 }
