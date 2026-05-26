@@ -138,7 +138,6 @@ void	Server::prepareWriteSet(fd_set& writeSet, int& maxFd)
 {
 	std::map<int, Client*>::iterator	it;
 
-	FD_SET(_serverFd, &writeSet);
 	it = _clients.getAll().begin();
 	while(it != _clients.getAll().end()) {
 		if (it->second->hasPendingOutput()) {
@@ -183,7 +182,6 @@ void	Server::handleWritableFds(fd_set& writeSet, int maxFd)
 
 void	Server::acceptClient()
 {
-	std::cout << "You are accepted friend\n";
     /* TODO(Leon):
 	 * - accept()
 	 * - set client fd non-blocking
@@ -199,6 +197,8 @@ void	Server::acceptClient()
 	}
 	setNonBlocking(clientFd); //bcse the new fd don't inherit of this tag
 	_clients.addClient(clientFd);
+	//[RMV] test write to client
+	//_clients.getByFd(clientFd)->appendOutput("Welcome test\r\n");
 	std::cout << "new client connected on fd " << clientFd << std::endl;
 }
 
@@ -257,6 +257,32 @@ void	Server::writeToClient(int fd)
 	 * - send output buffer
 	 * - consume sent bytes
 	 */
+
+	Client* 	client;
+	const std::string*	buffer;
+	int			bytesSent;
+
+	client = _clients.getByFd(fd);
+	if (!client) {
+		return ; //TODO (Leon): manage better this silent return ;)
+	}
+	buffer = &client->getOutputBuffer(); // juste une copie here
+	//std::cout	<< "the outbuffer before print is: " << buffer;
+	if (buffer->empty()) {
+		return; //fine grade manage here too
+	}
+	bytesSent = send(fd, buffer->c_str(), buffer->size(), 0);
+	if (bytesSent > 0) {
+		client->consumeOutput(bytesSent);
+	} else if (bytesSent < 0) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK) {
+			return ; //manage better than silent
+		}
+		std::cout	<< "send error on fd "
+					<< fd
+					<< std::endl;
+		disconnectClient(fd);
+	}
 	
 }
 
