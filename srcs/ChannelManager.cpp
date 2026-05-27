@@ -1,4 +1,4 @@
-#include "../includes/ChannelManager.hpp"
+#include "ChannelManager.hpp"
 
 ChannelManager::ChannelManager()
 	: _channels()
@@ -57,24 +57,20 @@ Channel*	ChannelManager::create(const std::string& name)
 {
 	if (name.empty())
 		return (NULL);
-	std::map<std::string, Channel*>::iterator	it = _channels.find(name);
-	if (it != _channels.end())
-		return (NULL);
-	Channel* channel = new Channel(name);
+	Channel* channel = get(name);
+	if (channel)
+		return (channel);
+	channel = new Channel(name);
 	_channels[name] = channel;
 	return (channel);
 }
 
 Channel*	ChannelManager::getOrCreate(const std::string& name)
 {
-	if (name.empty())
-		return (NULL);
-	std::map<std::string, Channel*>::iterator	it = _channels.find(name);
-	if (it != _channels.end())
-		return (it->second);
-	Channel* channel = new Channel(name);
-	_channels[name] = channel;
-	return (channel);
+	Channel* channel = get(name);
+	if (channel)
+		return (channel);
+	return (create(name));
 }
 
 bool	ChannelManager::exists(const std::string& name) const
@@ -111,7 +107,16 @@ void	ChannelManager::removeClientFromAllChannels(Client* client)
 	while (it != _channels.end())
 	{
 		it->second->removeClient(client);
-		++it;
+		if (it->second->isEmpty())
+		{
+			std::map<std::string, Channel*>::iterator next = it;
+			++next;
+			delete it->second;
+			_channels.erase(it);
+			it = next;
+		}
+		else
+			++it;
 	}
 }
 

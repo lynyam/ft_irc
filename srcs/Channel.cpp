@@ -1,4 +1,5 @@
-#include "../includes/Channel.hpp"
+#include "Channel.hpp"
+#include "Client.hpp"
 
 Channel::Channel(const std::string& name)
 	: _name(name),
@@ -43,7 +44,8 @@ const std::string&	Channel::getName() const
 
 void	Channel::addClient(Client* client)
 {
-	_clients.insert(client);
+	if (client)
+		_clients.insert(client);
 }
 
 void	Channel::removeClient(Client* client)
@@ -70,8 +72,8 @@ size_t	Channel::getClientCount() const
 
 void	Channel::addOperator(Client* client)
 {
-	_clients.insert(client);
-	_operators.insert(client);
+	if (hasClient(client))
+		_operators.insert(client);
 }
 
 void	Channel::removeOperator(Client* client)
@@ -86,7 +88,8 @@ bool	Channel::isOperator(Client* client) const
 
 void	Channel::invite(Client* client)
 {
-	_invited.insert(client);
+	if (client)
+		_invited.insert(client);
 }
 
 void	Channel::removeInvite(Client* client)
@@ -143,6 +146,7 @@ void	Channel::setKey(const std::string& key)
 
 void	Channel::removeKey()
 {
+	_key.clear();
 	_hasKey = false;
 }
 
@@ -166,6 +170,7 @@ void	Channel::setUserLimit(size_t limit)
 
 void	Channel::removeUserLimit()
 {
+	_userLimit = 0;
 	_hasUserLimit = false;
 }
 
@@ -204,13 +209,16 @@ void	Channel::broadcastExcept(Client* excluded, const std::string& message)
 std::string	Channel::buildNamesList() const
 {
 	std::string list;
-	for (std::set<Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	std::set<Client*>::const_iterator it;
+	it = _clients.begin();
+	while (it != _clients.end())
 	{
 		if (!list.empty())
 			list += " ";
 		if (isOperator(*it))
 			list += "@";
 		list += (*it)->getNickname();
+		++it;
 	}
 	return (list);
 }
