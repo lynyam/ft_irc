@@ -21,22 +21,6 @@ Channel::~Channel()
 {
 }
 
-/*
- * TODO(Luli):
- * Implement channel state management:
- * - members
- * - operators
- * - invites
- * - topic
- * - modes: i, t, k, l
- *
- * Important invariants:
- * - operators must be members
- * - removeClient() must also remove from operators and invited
- * - broadcast() must use Client::appendOutput(),
- * - Channel must never call send().
- */
-
 const std::string&	Channel::getName() const
 {
 	return (_name);

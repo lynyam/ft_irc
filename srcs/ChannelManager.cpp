@@ -18,21 +18,6 @@ ChannelManager::~ChannelManager()
 	_channels.clear();
 }
 
-/*
- * TODO(Luli):
- * Implement channel collection ownership:
- * - get()
- * - create()
- * - getOrCreate()
- * - remove()
- * - removeIfEmpty()
- * - removeClientFromAllChannels()
- *
- * Important:
- * removeClientFromAllChannels() is required by Server::disconnectClient()
- * before a Client* is deleted.
- */
-
 Channel*	ChannelManager::get(const std::string& name)
 {
 	if (name.empty())
