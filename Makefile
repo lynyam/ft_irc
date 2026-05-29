@@ -1,47 +1,51 @@
-NAME	= ircserv
+NAME = ircserv
 
-CXX	= c++
-CXXFLAGS= -Werror -Wall -Wextra -std=c++98
-INCLUDES= -I includes -I includes/commands
+CXX = c++
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 
-SRCS	= srcs/main.cpp \
-	srcs/Server.cpp \
-	srcs/Client.cpp \
-	srcs/ClientManager.cpp \
-	srcs/Channel.cpp \
-	srcs/ChannelManager.cpp \
-	srcs/CommandMessage.cpp \
-	srcs/Parser.cpp \
-	srcs/CommandDispatcher.cpp \
-	srcs/ReplyBuilder.cpp \
-	srcs/commands/PassCommand.cpp \
-	srcs/commands/NickCommand.cpp \
-	srcs/commands/UserCommand.cpp \
-	srcs/commands/JoinCommand.cpp \
-	srcs/commands/PrivmsgCommand.cpp \
-	srcs/commands/PartCommand.cpp \
-	srcs/commands/QuitCommand.cpp \
-	srcs/commands/KickCommand.cpp \
-	srcs/commands/InviteCommand.cpp \
-	srcs/commands/TopicCommand.cpp \
-	srcs/commands/ModeCommand.cpp \
-	srcs/commands/PingCommand.cpp	
+INC_DIR = includes
+SRC_DIR = srcs
+OBJ_DIR = obj
 
-OBJS	= $(SRCS:.cpp=.o)
+INCLUDES = -I$(INC_DIR) -I$(INC_DIR)/commands
+
+SRCS = $(SRC_DIR)/main.cpp \
+       $(SRC_DIR)/Parser.cpp \
+       $(SRC_DIR)/Channel.cpp \
+       $(SRC_DIR)/Client.cpp \
+       $(SRC_DIR)/ClientManager.cpp \
+       $(SRC_DIR)/ChannelManager.cpp \
+       $(SRC_DIR)/CommandMessage.cpp \
+       $(SRC_DIR)/CommandDispatcher.cpp \
+       $(SRC_DIR)/ReplyBuilder.cpp \
+       $(SRC_DIR)/commands/PassCommand.cpp \
+       $(SRC_DIR)/commands/NickCommand.cpp \
+       $(SRC_DIR)/commands/UserCommand.cpp \
+       $(SRC_DIR)/commands/JoinCommand.cpp \
+       $(SRC_DIR)/commands/PartCommand.cpp \
+       $(SRC_DIR)/commands/PrivmsgCommand.cpp \
+       $(SRC_DIR)/commands/InviteCommand.cpp \
+       $(SRC_DIR)/commands/QuitCommand.cpp \
+       $(SRC_DIR)/commands/KickCommand.cpp \
+       $(SRC_DIR)/commands/TopicCommand.cpp \
+       $(SRC_DIR)/commands/ModeCommand.cpp
+
+OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
 all: $(NAME)
 
 $(NAME): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
 
-%.o: %.cpp
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 clean:
-	rm -f $(OBJS)
+	@rm -rf $(OBJ_DIR)
 
 fclean: clean
-	rm -f $(NAME)
+	@rm -f $(NAME)
 
 re: fclean all
 
