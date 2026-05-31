@@ -36,6 +36,11 @@ class ReplyBuilder
                                             const std::string& channel);
         static std::string	errChannelIsFull(const std::string& nick,
                                             const std::string& channel);
+        static std::string  errNotOnChannel(const std::string& nick,
+                                    const std::string& channel);
+        static std::string  errUserNotInChannel(const std::string& nick,
+                                        const std::string& target,
+                                        const std::string& channel);
 
         static std::string	join(const Client& client,
                                 const std::string& channel);
@@ -57,6 +62,8 @@ class ReplyBuilder
                                 const std::string& channel,
                                 const std::string& modes,
                                 const std::string& args);
+        static std::string  mode(const std::string& serverName, const std::string& channel,
+                                const std::string& modes, const std::string& args);
         static std::string	pong(const std::string& token);
 
     private:

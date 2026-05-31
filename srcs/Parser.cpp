@@ -23,6 +23,9 @@ CommandMessage Parser::parse(const std::string& line)
         pos = prefix_end + 1;
     }
 
+    while (pos < tmp.size() && tmp[pos] == ' ')
+        ++pos;
+
     // get command
     size_t command_end = tmp.find(' ', pos);
     if (command_end == std::string::npos)
@@ -36,6 +39,10 @@ CommandMessage Parser::parse(const std::string& line)
     // get params
     while (pos < tmp.size())
     {
+        while (pos < tmp.size() && tmp[pos] == ' ')
+            ++pos;
+        if (pos >= tmp.size())
+            break;
         if (tmp[pos] == ':')
         {
             std::string trailing = tmp.substr(pos + 1);

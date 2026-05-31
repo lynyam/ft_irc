@@ -86,6 +86,16 @@ std::string ReplyBuilder::errChannelIsFull(const std::string& nick, const std::s
     return ":server 471 " + nick + " " + channel + " :Cannot join channel (+l)\r\n";
 }
 
+std::string ReplyBuilder::errNotOnChannel(const std::string& nick, const std::string& channel)
+{
+    return ":server 442 " + nick + " " + channel + " :You're not on that channel\r\n";
+}
+
+std::string ReplyBuilder::errUserNotInChannel(const std::string& nick, const std::string& target, const std::string& channel)
+{
+    return ":server 441 " + nick + " " + target + " " + channel + " :They aren't on that channel\r\n";
+}
+
 std::string ReplyBuilder::join(const Client& client, const std::string& channel)
 {
     return ":" + client.getPrefix() + " JOIN " + channel + "\r\n";
@@ -119,6 +129,12 @@ std::string ReplyBuilder::endOfNames(const std::string& nick, const std::string&
 std::string ReplyBuilder::mode(const Client& client, const std::string& channel, const std::string& modes, const std::string& args)
 {
     return ":" + client.getPrefix() + " MODE " + channel + " " + modes + (args.empty() ? "" : " " + args) + "\r\n";
+}
+
+std::string ReplyBuilder::mode(const std::string& serverName, const std::string& channel, const std::string& modes, const std::string& args)
+{
+    return ":" + serverName + " MODE " + channel + " " + modes
+           + (args.empty() ? "" : " " + args) + "\r\n";
 }
 
 std::string ReplyBuilder::pong(const std::string& token)

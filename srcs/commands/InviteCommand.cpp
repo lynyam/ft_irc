@@ -40,6 +40,11 @@ void InviteCommand::execute(Client& client, const CommandMessage& message,
         return;
     }
     Channel* channel = channels.get(channelName);
+    if (!channel->hasClient(&client))
+    {
+        client.appendOutput(ReplyBuilder::errNotOnChannel(client.getNickname(), channelName));
+        return;
+    }
     if (!channel->isOperator(&client))
     {
         client.appendOutput(ReplyBuilder::errChanOPrivsNeeded(client.getNickname(), channelName));
@@ -57,6 +62,6 @@ void InviteCommand::execute(Client& client, const CommandMessage& message,
         return;
     }
     channel->invite(target);
-    std::string inviteMsg = ":" + client.getNickname() + " INVITE " + targetNick + " :" + channelName + "\r\n";
+    std::string inviteMsg = ":" + client.getPrefix() + " INVITE " + targetNick + " :" + channelName + "\r\n";
     target->appendOutput(inviteMsg);
 }

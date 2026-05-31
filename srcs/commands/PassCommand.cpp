@@ -15,6 +15,11 @@ void PassCommand::execute(Client& client, const CommandMessage& message,
 {
     (void)clients;
     (void)channels;
+    if (client.isRegistered())
+    {
+        client.appendOutput(ReplyBuilder::errAlreadyRegistered(client.getNickname()));
+        return;
+    }
     if (!message.hasParam(0))
     {
         client.appendOutput(ReplyBuilder::errNeedMoreParams(client.getNickname(), "PASS"));

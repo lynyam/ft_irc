@@ -57,6 +57,7 @@ class Channel
         std::string			buildNamesList() const;
         std::string			buildModeString() const;
 
+        Client*             getFirstMember() const;
     private:
         std::string			_name;
         std::string			_topic;
