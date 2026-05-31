@@ -1,5 +1,3 @@
----
-```md
 # ft_irc Team Contract
 
 ## Ownership
@@ -132,7 +130,3 @@ _channels.removeClientFromAllChannels(client);
 Public method signatures in `.hpp` files should not be changed without team agreement.
 
 Private helper methods can be added freely by the file owner.
-
-````
-
----

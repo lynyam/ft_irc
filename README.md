@@ -1,4 +1,3 @@
-````md
 *This project has been created as part of the 42 curriculum by ynyamets, yurwang, lulmaruy.*
 
 # ft_irc
@@ -72,6 +71,7 @@ docs/protocol-notes.md
 * RFC 1459 — Original IRC Protocol
 * Beej's Guide to Network Programming
 * Linux/macOS manual pages for `socket`, `bind`, `listen`, `accept`, `recv`, `send`, `select`, and `fcntl`
+* [man select()](http://manpagesfr.free.fr/man/man2/select_tut.2.html)
 
 ## AI usage
 
@@ -86,5 +86,3 @@ It helped with:
 * preparing implementation steps
 
 All generated content must be reviewed, tested, and understood by the team before being used.
-
-````

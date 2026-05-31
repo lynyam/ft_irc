@@ -218,5 +218,3 @@ close(fd);
 ```
 
 This prevents dangling `Client*` inside channels (pointeur that point to non existant memory).
-
-````
