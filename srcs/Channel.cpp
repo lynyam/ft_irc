@@ -220,3 +220,10 @@ std::string	Channel::buildModeString() const
 		mode += "l";
 	return (mode);
 }
+
+Client* Channel::getFirstMember() const
+{
+    if (_clients.empty())
+        return nullptr;
+    return *_clients.begin();
+}

@@ -105,6 +105,19 @@ void	ChannelManager::removeClientFromAllChannels(Client* client)
 	}
 }
 
+void	ChannelManager::broadcastToClientChannels(Client* client, const std::string& message)
+{
+	std::map<std::string, Channel*>::iterator it;
+
+	it = _channels.begin();
+	while (it != _channels.end())
+	{
+		if (it->second && it->second->hasClient(client))
+			it->second->broadcastExcept(client, message);
+		++it;
+	}
+}
+
 std::map<std::string, Channel*>&	ChannelManager::getAll()
 {
 	return (_channels);

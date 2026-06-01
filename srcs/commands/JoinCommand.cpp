@@ -24,6 +24,7 @@ void JoinCommand::execute(Client& client, const CommandMessage& message,
         return;
     }
     const std::string& channelName = message.getParam(0);
+    bool isNewChannel = !channels.exists(channelName);
     Channel* channel = channels.getOrCreate(channelName);
     if (channel->isInviteOnly() && !channel->isInvited(&client))
     {
@@ -44,6 +45,8 @@ void JoinCommand::execute(Client& client, const CommandMessage& message,
         return;
     }
     channel->addClient(&client);
+    if (isNewChannel)
+        channel->addOperator(&client);
     channel->broadcast(ReplyBuilder::join(client, channelName));
     client.appendOutput(ReplyBuilder::namReply(client.getNickname(), channelName, channel->buildNamesList()));
     client.appendOutput(ReplyBuilder::endOfNames(client.getNickname(), channelName));

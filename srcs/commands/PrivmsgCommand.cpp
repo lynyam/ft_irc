@@ -24,7 +24,7 @@ void PrivmsgCommand::execute(Client& client, const CommandMessage& message,
     }
     const std::string& target = message.getParam(0);
     const std::string& text = message.getParam(1);
-    if (target[0] == '#')
+    if (!target.empty() && target[0] == '#')
     {
         Channel* channel = channels.get(target);
         if (!channel)
