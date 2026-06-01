@@ -205,3 +205,8 @@ Client* Channel::getFirstMember() const
         return nullptr;
     return *_clients.begin();
 }
+
+bool Channel::hasOperator() const
+{
+    return !_operators.empty();
+}

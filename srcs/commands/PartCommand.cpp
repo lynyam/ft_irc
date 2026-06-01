@@ -47,10 +47,10 @@ void PartCommand::execute(Client& client, const CommandMessage& message,
         return ;
 
     //auto-promote if operator left and no operator remains
-    if (wasOperator)
+    if (wasOperator && !channel->hasOperator())
     {
         Client* newOp = channel->getFirstMember();
-        if (newOp && !channel->isOperator(newOp))
+        if (newOp)
         {
             channel->addOperator(newOp);
             channel->broadcast(ReplyBuilder::mode("server", channelName, "+o", newOp->getNickname()));

@@ -119,7 +119,19 @@ void ModeCommand::execute(Client& client, const CommandMessage& message,
         if (setting)
             channel->addOperator(target);
         else
+        {
             channel->removeOperator(target);
+            // auto promote
+            if (!channel->hasOperator())
+            {
+                Client * newOp = channel->getFirstMember();
+                if (newOp)
+                {
+                    channel->addOperator(newOp);
+                    channel->broadcast(ReplyBuilder::mode("server", channelName, "+o", newOp->getNickname()));
+                }
+            }
+        }
     }
     else
         return;
