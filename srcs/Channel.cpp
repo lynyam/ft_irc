@@ -223,7 +223,7 @@ std::string	Channel::buildModeString() const
 
 Client* Channel::getFirstMember() const
 {
-    if (_clients.empty())
-        return nullptr;
-    return *_clients.begin();
+	if (_clients.empty())
+		return NULL;
+	return *_clients.begin();
 }

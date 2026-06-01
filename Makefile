@@ -9,7 +9,8 @@ OBJ_DIR = obj
 
 INCLUDES = -I$(INC_DIR) -I$(INC_DIR)/commands
 
-SRCS = $(SRC_DIR)/main.cpp \
+SRCS = $(SRC_DIR)/test_leon_version.cpp \
+       $(SRC_DIR)/Server.cpp \
        $(SRC_DIR)/Parser.cpp \
        $(SRC_DIR)/Channel.cpp \
        $(SRC_DIR)/Client.cpp \
