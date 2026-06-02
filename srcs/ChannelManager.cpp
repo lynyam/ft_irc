@@ -18,64 +18,91 @@ ChannelManager::~ChannelManager()
 	_channels.clear();
 }
 
-/*
- * TODO(Luli):
- * Implement channel collection ownership:
- * - get()
- * - create()
- * - getOrCreate()
- * - remove()
- * - removeIfEmpty()
- * - removeClientFromAllChannels()
- *
- * Important:
- * removeClientFromAllChannels() is required by Server::disconnectClient()
- * before a Client* is deleted.
- */
-
 Channel*	ChannelManager::get(const std::string& name)
 {
-	(void)name;
-	return (NULL);
+	if (name.empty())
+		return (NULL);
+	std::map<std::string, Channel*>::iterator	it = _channels.find(name);
+	if (it == _channels.end())
+		return (NULL);
+	return (it->second);
 }
 
 const Channel*	ChannelManager::get(const std::string& name) const
 {
-	(void)name;
-	return (NULL);
+	if (name.empty())
+		return (NULL);
+	std::map<std::string, Channel*>::const_iterator	it = _channels.find(name);
+	if (it == _channels.end())
+		return (NULL);
+	return (it->second);
 }
 
 Channel*	ChannelManager::create(const std::string& name)
 {
-	(void)name;
-	return (NULL);
+	if (name.empty())
+		return (NULL);
+	Channel* channel = get(name);
+	if (channel)
+		return (channel);
+	channel = new Channel(name);
+	_channels[name] = channel;
+	return (channel);
 }
 
 Channel*	ChannelManager::getOrCreate(const std::string& name)
 {
-	(void)name;
-	return (NULL);
+	Channel* channel = get(name);
+	if (channel)
+		return (channel);
+	return (create(name));
 }
 
 bool	ChannelManager::exists(const std::string& name) const
 {
-	(void)name;
-	return (false);
+	if (name.empty())
+		return (false);
+	return (_channels.find(name) != _channels.end());
 }
 
 void	ChannelManager::remove(const std::string& name)
 {
-	(void)name;
+	std::map<std::string, Channel*>::iterator	it = _channels.find(name);
+	if (it == _channels.end())
+		return ;
+	delete it->second;
+	_channels.erase(it);
 }
 
 void	ChannelManager::removeIfEmpty(const std::string& name)
 {
-	(void)name;
+	std::map<std::string, Channel*>::iterator	it = _channels.find(name);
+	if (it == _channels.end())
+		return ;
+	if (it->second->isEmpty())
+	{
+		delete it->second;
+		_channels.erase(it);
+	}
 }
 
 void	ChannelManager::removeClientFromAllChannels(Client* client)
 {
-	(void)client;
+	std::map<std::string, Channel*>::iterator	it = _channels.begin();
+	while (it != _channels.end())
+	{
+		it->second->removeClient(client);
+		if (it->second->isEmpty())
+		{
+			std::map<std::string, Channel*>::iterator next = it;
+			++next;
+			delete it->second;
+			_channels.erase(it);
+			it = next;
+		}
+		else
+			++it;
+	}
 }
 
 void	ChannelManager::broadcastToClientChannels(Client* client, const std::string& message)
