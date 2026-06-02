@@ -20,14 +20,24 @@ void printMessage(const CommandMessage& msg)
     std::cout << "  trailing: [" << msg.getTrailing() << "]" << std::endl;
 }
 
+static std::string stripCRLF(const std::string& raw)
+{
+    std::string line = raw;
+    if (line.size() >= 2 && line[line.size() - 2] == '\r' && line[line.size() - 1] == '\n')
+        line.resize(line.size() - 2);
+    else if (!line.empty() && (line[line.size() - 1] == '\n' || line[line.size() - 1] == '\r'))
+        line.resize(line.size() - 1);
+    return line;
+}
+
 void testParser(const std::string& raw, const std::string& expectedCommand,
                 size_t expectedParams, const std::string& expectedPrefix = "")
 {
-    CommandMessage msg = Parser::parse(raw);
+    CommandMessage msg = Parser::parse(stripCRLF(raw));
     bool ok = (msg.getCommand() == expectedCommand)
            && (msg.paramCount() == expectedParams)
            && (msg.getPrefix() == expectedPrefix);
-    std::cout << (ok ? "[PASS]" : "[FAIL]") << " parse(\"" << raw.substr(0, raw.size() - 2) << "\")" << std::endl;
+    std::cout << (ok ? "[PASS]" : "[FAIL]") << " parse(\"" << stripCRLF(raw) << "\")" << std::endl;
     if (!ok)
         printMessage(msg);
 }
@@ -38,24 +48,24 @@ void runParserTests()
 
     testParser("NICK alice\r\n",                              "NICK",    1);
     testParser("PASS secret\r\n",                             "PASS",    1);
-    testParser("USER alice 0 * :Real Name\r\n",               "USER",    4);
+    testParser("USER alice 0 * :Real Name\r\n",               "USER",    3);
     testParser("JOIN #general\r\n",                           "JOIN",    1);
     testParser("JOIN #general secretkey\r\n",                 "JOIN",    2);
     testParser("PART #general\r\n",                           "PART",    1);
-    testParser("PART #general :Goodbye\r\n",                  "PART",    2);
-    testParser("PRIVMSG #general :hello world\r\n",           "PRIVMSG", 2);
-    testParser("PRIVMSG alice :hello\r\n",                    "PRIVMSG", 2);
+    testParser("PART #general :Goodbye\r\n",                  "PART",    1);
+    testParser("PRIVMSG #general :hello world\r\n",           "PRIVMSG", 1);
+    testParser("PRIVMSG alice :hello\r\n",                    "PRIVMSG", 1);
     testParser("QUIT\r\n",                                    "QUIT",    0);
-    testParser("QUIT :Bye\r\n",                               "QUIT",    1);
-    testParser("KICK #general alice :reason\r\n",             "KICK",    3);
+    testParser("QUIT :Bye\r\n",                               "QUIT",    0);
+    testParser("KICK #general alice :reason\r\n",             "KICK",    2);
     testParser("INVITE alice #general\r\n",                   "INVITE",  2);
     testParser("TOPIC #general\r\n",                          "TOPIC",   1);
-    testParser("TOPIC #general :new topic\r\n",               "TOPIC",   2);
+    testParser("TOPIC #general :new topic\r\n",               "TOPIC",   1);
     testParser("MODE #general +i\r\n",                        "MODE",    2);
     testParser("MODE #general +k secret\r\n",                 "MODE",    3);
     testParser("MODE #general +o alice\r\n",                  "MODE",    3);
     testParser("MODE #general +l 10\r\n",                     "MODE",    3);
-    testParser(":alice!user@host PRIVMSG #general :hi\r\n",   "PRIVMSG", 2, "alice!user@host");
+    testParser(":alice!user@host PRIVMSG #general :hi\r\n",   "PRIVMSG", 1, "alice!user@host");
     testParser("\r\n",                                        "",        0);
     testParser("UNKNOWN\r\n",                                 "UNKNOWN", 0);
 }
@@ -78,8 +88,8 @@ void testCommand(CommandDispatcher& dispatcher, Client& client,
                  const std::string& raw, const std::string& label)
 {
     (void)label;
-    std::cout << "  >>> " << raw;
-    dispatcher.dispatch(client, raw);
+    std::cout << "  >>> " << stripCRLF(raw) << "\n";
+    dispatcher.dispatch(client, stripCRLF(raw));
     flushOutput(client);
 }
 

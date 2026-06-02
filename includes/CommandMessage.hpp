@@ -24,12 +24,14 @@ class CommandMessage
         bool							hasParam(size_t index) const;
         const std::string&				getParam(size_t index) const;
         size_t							paramCount() const;
+        bool							hasTrailing() const;
 
     private:
         std::string						_prefix;
         std::string						_command;
         std::vector<std::string>		_params;
         std::string						_trailing;
+        bool							_hasTrailing;
 };
 
 #endif

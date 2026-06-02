@@ -13,8 +13,15 @@ void PingCommand::execute(Client& client, const CommandMessage& message,
 {
     (void)clients;
     (void)channels;
-    std::string token = message.getTrailing().empty()
-        ? message.getParam(0)
-        : message.getTrailing();
+    std::string token;
+    if (!message.getTrailing().empty())
+        token = message.getTrailing();
+    else if (message.hasParam(0))
+        token = message.getParam(0);
+    if (token.empty())
+    {
+        client.appendOutput(ReplyBuilder::errNeedMoreParams(client.getNickname(), "PING"));
+        return;
+    }
     client.appendOutput(ReplyBuilder::pong(token));
 }

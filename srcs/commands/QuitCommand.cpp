@@ -12,9 +12,13 @@ void QuitCommand::execute(Client& client, const CommandMessage& message,
                           ClientManager& clients, ChannelManager& channels)
 {
     (void)clients;
-    std::string reason = message.getTrailing().empty() ? "Client Quit" : message.getTrailing();
+    std::string reason = message.getTrailing();
+    if (reason.empty() && message.hasParam(0))
+        reason = message.getParam(0);
+    if (reason.empty())
+        reason = "Client Quit";
     channels.broadcastToClientChannels(&client, ReplyBuilder::quit(client, reason));
     channels.removeClientFromAllChannels(&client);
-    client.appendOutput("ERROR :Closing Link: " + client.getNickname() + " (" + reason + ")\r\n");
-    client.markPendingDisconnect();
+    client.appendOutput(ReplyBuilder::errorClosingLink(client.getNickname(), reason));
+    client.requestDisconnect();
 }

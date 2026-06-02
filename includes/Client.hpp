@@ -38,8 +38,8 @@ class Client
         bool				isRegistered() const;
         void				markRegistered();
 
-        void				markPendingDisconnect();
-        bool				isPendingDisconnect() const;
+        void				requestDisconnect();
+        bool				isDisconnectRequested() const;
 
         std::string			getPrefix() const;
 

@@ -28,7 +28,8 @@ SRCS = $(SRC_DIR)/main.cpp \
        $(SRC_DIR)/commands/QuitCommand.cpp \
        $(SRC_DIR)/commands/KickCommand.cpp \
        $(SRC_DIR)/commands/TopicCommand.cpp \
-       $(SRC_DIR)/commands/ModeCommand.cpp
+       $(SRC_DIR)/commands/ModeCommand.cpp \
+       $(SRC_DIR)/commands/PingCommand.cpp
 
 OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 

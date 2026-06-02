@@ -34,12 +34,12 @@ void InviteCommand::execute(Client& client, const CommandMessage& message,
     }
     const std::string& targetNick = message.getParam(0);
     const std::string& channelName = message.getParam(1);
-    if (!channels.exists(channelName))
+    Channel* channel = channels.get(channelName);
+    if (!channel)
     {
         client.appendOutput(ReplyBuilder::errNoSuchChannel(client.getNickname(), channelName));
         return;
     }
-    Channel* channel = channels.get(channelName);
     if (!channel->hasClient(&client))
     {
         client.appendOutput(ReplyBuilder::errNotOnChannel(client.getNickname(), channelName));
@@ -62,5 +62,6 @@ void InviteCommand::execute(Client& client, const CommandMessage& message,
         return;
     }
     channel->invite(target);
+    client.appendOutput(ReplyBuilder::rplInviting(client.getNickname(), targetNick, channelName));
     target->appendOutput(ReplyBuilder::invite(client, targetNick, channelName));
 }

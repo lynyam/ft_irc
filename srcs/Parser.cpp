@@ -6,11 +6,7 @@ CommandMessage Parser::parse(const std::string& line)
     if (line.empty())
         return msg;
 
-    std::string tmp = line;
-    size_t msg_end = tmp.find("\r\n");
-    if (msg_end != std::string::npos)
-        tmp = tmp.substr(0, msg_end);
-
+    const std::string& tmp = line;
     size_t pos = 0;
 
     // get prefix
@@ -25,6 +21,8 @@ CommandMessage Parser::parse(const std::string& line)
 
     while (pos < tmp.size() && tmp[pos] == ' ')
         ++pos;
+    if (pos >= tmp.size())
+        return msg;
 
     // get command
     size_t command_end = tmp.find(' ', pos);

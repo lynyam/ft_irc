@@ -6,6 +6,7 @@
 #include "CommandMessage.hpp"
 #include "ReplyBuilder.hpp"
 #include <cstdlib>
+#include <cerrno>
 #include <cctype>
 
 ModeCommand::ModeCommand() {}
@@ -19,7 +20,7 @@ void ModeCommand::execute(Client& client, const CommandMessage& message,
         client.appendOutput(ReplyBuilder::errNotRegistered(client.getNickname()));
         return;
     }
-    if (message.paramCount() < 2)
+    if (!message.hasParam(0))
     {
         client.appendOutput(ReplyBuilder::errNeedMoreParams(client.getNickname(), "MODE"));
         return;
@@ -29,6 +30,11 @@ void ModeCommand::execute(Client& client, const CommandMessage& message,
     if (!channel)
     {
         client.appendOutput(ReplyBuilder::errNoSuchChannel(client.getNickname(), channelName));
+        return;
+    }
+    if (!message.hasParam(1))
+    {
+        client.appendOutput(ReplyBuilder::mode(client, channelName, channel->buildModeString(), ""));
         return;
     }
     if (!channel->hasClient(&client))
@@ -42,7 +48,7 @@ void ModeCommand::execute(Client& client, const CommandMessage& message,
         return;
     }
     const std::string& modeStr = message.getParam(1);
-    if (modeStr.size() < 2 || (modeStr[0] != '+' && modeStr[0] != '-'))
+    if (modeStr.size() != 2 || (modeStr[0] != '+' && modeStr[0] != '-'))
     {
         client.appendOutput(ReplyBuilder::errNeedMoreParams(client.getNickname(), "MODE"));
         return;
@@ -87,8 +93,10 @@ void ModeCommand::execute(Client& client, const CommandMessage& message,
                     return;
                 }
             }
-            int limit = std::atoi(arg.c_str());
-            if (limit <= 0)
+            errno = 0;
+            char* end;
+            long limit = std::strtol(arg.c_str(), &end, 10);
+            if (errno != 0 || end == arg.c_str() || limit <= 0 || limit > 65535)
             {
                 client.appendOutput(ReplyBuilder::errNeedMoreParams(client.getNickname(), "MODE"));
                 return;
@@ -120,30 +128,34 @@ void ModeCommand::execute(Client& client, const CommandMessage& message,
             channel->addOperator(target);
         else
         {
-            channel->removeOperator(target);
-            if (!channel->hasOperator())
+            if (!channel->isOperator(target))
+                return;
+            if (channel->getOperatorCount() == 1)
             {
-                Client* newOp = channel->getFirstMemberExcept(target);
-                if (newOp)
+                if (channel->getClientCount() == 1)
                 {
-                    // last op removed, another member exists: auto-promote and broadcast both changes
-                    channel->broadcast(ReplyBuilder::mode(client, channelName, modeStr, arg));
-                    channel->addOperator(newOp);
-                    channel->broadcast(ReplyBuilder::mode("server", channelName, "+o", newOp->getNickname()));
-                    return;
-                }
-                else
-                {
-                    // last op and alone: broadcast the demotion then delete the channel
-                    channel->broadcast(ReplyBuilder::mode(client, channelName, modeStr, arg));
+                    channel->broadcast(ReplyBuilder::mode(client, channelName, "-o", target->getNickname()));
                     channels.remove(channelName);
                     return;
                 }
+                Client* newOp = channel->getFirstMemberExcept(target);
+                if (newOp)
+                {
+                    channel->removeOperator(target);
+                    channel->addOperator(newOp);
+                    channel->broadcast(ReplyBuilder::mode(client, channelName, "-o", target->getNickname()));
+                    channel->broadcast(ReplyBuilder::mode("server", channelName, "+o", newOp->getNickname()));
+                    return;
+                }
             }
+            channel->removeOperator(target);
         }
     }
     else
+    {
+        client.appendOutput(ReplyBuilder::errUnknownMode(client.getNickname(), mode));
         return;
+    }
 
     channel->broadcast(ReplyBuilder::mode(client, channelName, modeStr, arg));
 }

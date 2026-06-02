@@ -100,7 +100,7 @@ void	Server::acceptClient()
 void	Server::readFromClient(int fd)
 {
 	Client* client = _clients.getByFd(fd);
-	if (!client || client->isPendingDisconnect())
+	if (!client || client->isDisconnectRequested())
 		return;
     /* TODO(Leon):
 	 * - recv() into a buffer
@@ -120,7 +120,7 @@ void	Server::writeToClient(int fd)
 	ssize_t sent = send(fd, buf.c_str(), buf.size(), 0);
 	if (sent > 0)
 		client->consumeOutput(static_cast<size_t>(sent));
-	if (!client->hasPendingOutput() && client->isPendingDisconnect())
+	if (!client->hasPendingOutput() && client->isDisconnectRequested())
 		disconnectClient(fd);
 }
 

@@ -17,14 +17,24 @@ void PrivmsgCommand::execute(Client& client, const CommandMessage& message,
         client.appendOutput(ReplyBuilder::errNotRegistered(client.getNickname()));
         return;
     }
-    if (message.paramCount() < 1 || message.getTrailing().empty())
+    if (!message.hasParam(0))
     {
         client.appendOutput(ReplyBuilder::errNeedMoreParams(client.getNickname(), "PRIVMSG"));
         return;
     }
     const std::string& target = message.getParam(0);
+    if (target.empty())
+    {
+        client.appendOutput(ReplyBuilder::errNeedMoreParams(client.getNickname(), "PRIVMSG"));
+        return;
+    }
+    if (!message.hasTrailing())
+    {
+        client.appendOutput(ReplyBuilder::errNoTextToSend(client.getNickname()));
+        return;
+    }
     const std::string& text = message.getTrailing();
-    if (!target.empty() && target[0] == '#')
+    if (target[0] == '#')
     {
         Channel* channel = channels.get(target);
         if (!channel)

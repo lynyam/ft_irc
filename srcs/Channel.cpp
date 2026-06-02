@@ -242,3 +242,13 @@ bool	Channel::hasOperator() const
 {
 	return (!_operators.empty());
 }
+
+size_t	Channel::getOperatorCount() const
+{
+	return (_operators.size());
+}
+
+const std::set<Client*>&	Channel::getClients() const
+{
+	return (_clients);
+}

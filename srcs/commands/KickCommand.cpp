@@ -48,11 +48,6 @@ void KickCommand::execute(Client& client, const CommandMessage& message,
         client.appendOutput(ReplyBuilder::errNoSuchNick(client.getNickname(), targetNick));
         return;
     }
-    // if (target == &client)
-    // {
-    //     client.appendOutput(":server NOTICE " + client.getNickname() + " :Operator cannot kick themselves\r\n");
-    //     return;
-    // }
     if (!channel->hasClient(target))
     {
         client.appendOutput(ReplyBuilder::errUserNotInChannel(client.getNickname(), targetNick, channelName));
@@ -60,11 +55,19 @@ void KickCommand::execute(Client& client, const CommandMessage& message,
     }
 
     bool targetWasOperator = channel->isOperator(target);
-    std::string reason = message.getTrailing().empty() ? targetNick : message.getTrailing();
+    std::string reason = message.getTrailing();
+    if (reason.empty() && message.hasParam(2))
+        reason = message.getParam(2);
+    if (reason.empty())
+        reason = targetNick;
     channel->broadcast(ReplyBuilder::kick(client, channelName, targetNick, reason));
     channel->removeClient(target);
+    channels.removeIfEmpty(channelName);
 
-    //auto-promote if kicked user was operator and no operator remains
+    channel = channels.get(channelName);
+    if (!channel)
+        return;
+
     if (targetWasOperator && !channel->hasOperator())
     {
         Client* newOp = channel->getFirstMember();

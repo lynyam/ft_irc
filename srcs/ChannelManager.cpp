@@ -1,4 +1,6 @@
 #include "ChannelManager.hpp"
+#include "Client.hpp"
+#include <set>
 
 ChannelManager::ChannelManager()
 	: _channels()
@@ -107,14 +109,31 @@ void	ChannelManager::removeClientFromAllChannels(Client* client)
 
 void	ChannelManager::broadcastToClientChannels(Client* client, const std::string& message)
 {
-	std::map<std::string, Channel*>::iterator it;
+	std::map<std::string, Channel*>::iterator	it;
+	std::set<Client*>							recipients;
+	std::set<Client*>::const_iterator			clientIt;
 
 	it = _channels.begin();
 	while (it != _channels.end())
 	{
 		if (it->second && it->second->hasClient(client))
-			it->second->broadcastExcept(client, message);
+		{
+			const std::set<Client*>& members = it->second->getClients();
+			clientIt = members.begin();
+			while (clientIt != members.end())
+			{
+				if (*clientIt != client)
+					recipients.insert(*clientIt);
+				++clientIt;
+			}
+		}
 		++it;
+	}
+	clientIt = recipients.begin();
+	while (clientIt != recipients.end())
+	{
+		(*clientIt)->appendOutput(message);
+		++clientIt;
 	}
 }
 

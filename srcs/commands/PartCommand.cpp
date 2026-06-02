@@ -18,18 +18,18 @@ void PartCommand::execute(Client& client, const CommandMessage& message,
         client.appendOutput(ReplyBuilder::errNotRegistered(client.getNickname()));
         return;
     }
-    if (message.paramCount() < 1)
+    if (!message.hasParam(0))
     {
         client.appendOutput(ReplyBuilder::errNeedMoreParams(client.getNickname(), "PART"));
         return;
     }
     const std::string& channelName = message.getParam(0);
-    if (!channels.exists(channelName))
+    Channel* channel = channels.get(channelName);
+    if (!channel)
     {
         client.appendOutput(ReplyBuilder::errNoSuchChannel(client.getNickname(), channelName));
         return;
     }
-    Channel* channel = channels.get(channelName);
     if (!channel->hasClient(&client))
     {
         client.appendOutput(ReplyBuilder::errNotOnChannel(client.getNickname(), channelName));
@@ -40,6 +40,8 @@ void PartCommand::execute(Client& client, const CommandMessage& message,
     bool wasOperator = channel->isOperator(&client);
 
     std::string reason = message.getTrailing();
+    if (reason.empty() && message.hasParam(1))
+        reason = message.getParam(1);
     channel->broadcast(ReplyBuilder::part(client, channelName, reason));
     channel->removeClient(&client);
     channels.removeIfEmpty(channelName);

@@ -4,7 +4,6 @@
 #include "ChannelManager.hpp"
 #include "CommandMessage.hpp"
 #include "ReplyBuilder.hpp"
-#include "RegistrationHelper.hpp"
 
 UserCommand::UserCommand() {}
 UserCommand::~UserCommand() {}
@@ -24,12 +23,13 @@ void UserCommand::execute(Client& client, const CommandMessage& message,
         client.appendOutput(ReplyBuilder::errAlreadyRegistered(client.getNickname()));
         return;
     }
-    if (message.paramCount() < 3 || message.getTrailing().empty())
+    if (!message.hasParam(0) || !message.hasParam(1)
+        || !message.hasParam(2) || message.getTrailing().empty())
     {
         client.appendOutput(ReplyBuilder::errNeedMoreParams(client.getNickname(), "USER"));
         return;
     }
     client.setUsername(message.getParam(0));
     client.setRealname(message.getTrailing());
-    tryRegister(client);
+    ReplyBuilder::tryRegister(client);
 }

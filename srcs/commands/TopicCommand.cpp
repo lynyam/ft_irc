@@ -24,27 +24,23 @@ void TopicCommand::execute(Client& client, const CommandMessage& message,
         return;
     }
     const std::string& channelName = message.getParam(0);
-    if (!channels.exists(channelName))
+    Channel* channel = channels.get(channelName);
+    if (!channel)
     {
         client.appendOutput(ReplyBuilder::errNoSuchChannel(client.getNickname(), channelName));
         return;
     }
-    Channel* channel = channels.get(channelName);
     if (!channel->hasClient(&client))
     {
         client.appendOutput(ReplyBuilder::errNotOnChannel(client.getNickname(), channelName));
         return;
     }
-    if (message.getTrailing().empty())
+    if (!message.hasTrailing())
     {
         if (!channel->hasTopic())
-        {
-            client.appendOutput(":server 331 " + client.getNickname() + " " + channelName + " :No topic is set\r\n");
-        }
+            client.appendOutput(ReplyBuilder::noTopic(client.getNickname(), channelName));
         else
-        {
             client.appendOutput(ReplyBuilder::topic(client.getNickname(), channelName, channel->getTopic()));
-        }
         return;
     }
     if (channel->isTopicProtected() && !channel->isOperator(&client))

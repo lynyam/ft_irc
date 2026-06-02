@@ -50,10 +50,11 @@ void CommandDispatcher::dispatch(Client& client, const CommandMessage& message)
 {
     if (message.getCommand().empty())
         return;
+    const std::string& nick = client.getNickname().empty() ? "*" : client.getNickname();
     CommandMap::iterator it = _commands.find(message.getCommand());
     if (it == _commands.end())
     {
-        client.appendOutput(ReplyBuilder::errUnknownCommand(client.getNickname(), message.getCommand()));
+        client.appendOutput(ReplyBuilder::errUnknownCommand(nick, message.getCommand()));
         return;
     }
     it->second->execute(client, message, _clients, _channels);

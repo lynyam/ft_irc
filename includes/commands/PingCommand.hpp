@@ -7,10 +7,12 @@ class PingCommand : public ICommand
 {
     public:
         PingCommand();
-        ~PingCommand();
+        virtual ~PingCommand();
 
-        void execute(Client& client, const CommandMessage& message,
-                     ClientManager& clients, ChannelManager& channels);
+        virtual void	execute(Client& client,
+                                const CommandMessage& message,
+                                ClientManager& clients,
+                                ChannelManager& channels);
 };
 
 #endif

@@ -24,8 +24,24 @@ void JoinCommand::execute(Client& client, const CommandMessage& message,
         return;
     }
     const std::string& channelName = message.getParam(0);
+    if (channelName.empty() || channelName[0] != '#')
+    {
+        client.appendOutput(ReplyBuilder::errNoSuchChannel(client.getNickname(), channelName));
+        return;
+    }
     bool isNewChannel = !channels.exists(channelName);
     Channel* channel = channels.getOrCreate(channelName);
+    if (!channel)
+    {
+        client.appendOutput(ReplyBuilder::errNoSuchChannel(client.getNickname(), channelName));
+        return;
+    }
+    if (channel->hasClient(&client))
+    {
+        client.appendOutput(ReplyBuilder::namReply(client.getNickname(), channelName, channel->buildNamesList()));
+        client.appendOutput(ReplyBuilder::endOfNames(client.getNickname(), channelName));
+        return;
+    }
     if (channel->isInviteOnly() && !channel->isInvited(&client))
     {
         client.appendOutput(ReplyBuilder::errInviteOnlyChan(client.getNickname(), channelName));
@@ -45,6 +61,8 @@ void JoinCommand::execute(Client& client, const CommandMessage& message,
         return;
     }
     channel->addClient(&client);
+    if (channel->isInvited(&client))
+        channel->removeInvite(&client);
     if (isNewChannel)
         channel->addOperator(&client);
     channel->broadcast(ReplyBuilder::join(client, channelName));

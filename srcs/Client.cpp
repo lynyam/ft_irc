@@ -135,17 +135,17 @@ void	Client::markRegistered()
 	_registered = true;
 }
 
-void	Client::markPendingDisconnect()
+void	Client::requestDisconnect()
 {
 	_pendingDisconnect = true;
 }
 
-bool	Client::isPendingDisconnect() const
+bool	Client::isDisconnectRequested() const
 {
 	return (_pendingDisconnect);
 }
 
 std::string	Client::getPrefix() const
 {
-	return (_nickname + "!" + _username + "@localhost");
+	return (":" + _nickname + "!" + _username + "@localhost");
 }
