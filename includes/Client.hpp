@@ -38,6 +38,9 @@ class Client
         bool				isRegistered() const;
         void				markRegistered();
 
+        void				requestDisconnect();
+        bool				isDisconnectRequested() const;
+
         std::string			getPrefix() const;
 
     private:
@@ -47,6 +50,7 @@ class Client
 
         bool				_passwordAccepted;
         bool				_registered;
+        bool				_pendingDisconnect;
 
         std::string			_nickname;
         std::string			_username;

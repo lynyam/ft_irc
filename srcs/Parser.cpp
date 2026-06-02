@@ -1,41 +1,59 @@
 #include "Parser.hpp"
-#include <sstream>
-/*
-    ToDO Yurong
-    - It is a minimum parser free to replace/improve
-     with your parser
-        first word       -> command
-        normal words     -> params
-        words after ':'  -> trailing       
-        example: PRIVMSG #general :hello world
-        command  = PRIVMSG
-        params   = #general
-        trailing = hello world
-*/
-CommandMessage	Parser::parse(const std::string& line)
+
+CommandMessage Parser::parse(const std::string& line)
 {
-	CommandMessage			message;
-	std::istringstream		stream(line);
-	std::string				token;
+    CommandMessage msg;
+    if (line.empty())
+        return msg;
 
-	if (!(stream >> token))
-		return (message);
-	message.setCommand(token);
+    const std::string& tmp = line;
+    size_t pos = 0;
 
-	while (stream >> token)
-	{
-		if (!token.empty() && token[0] == ':')
-		{
-			std::string	trailing;
-			std::string	rest;
+    // get prefix
+    if (!tmp.empty() && tmp[0] == ':')
+    {
+        size_t prefix_end = tmp.find(' ');
+        if (prefix_end == std::string::npos)
+            return msg;
+        msg.setPrefix(tmp.substr(1, prefix_end - 1));
+        pos = prefix_end + 1;
+    }
 
-			trailing = token.substr(1);
-			while (stream >> rest)
-				trailing += " " + rest;
-			message.setTrailing(trailing);
-			break ;
-		}
-		message.addParam(token);
-	}
-	return (message);
+    while (pos < tmp.size() && tmp[pos] == ' ')
+        ++pos;
+    if (pos >= tmp.size())
+        return msg;
+
+    // get command
+    size_t command_end = tmp.find(' ', pos);
+    if (command_end == std::string::npos)
+    {
+        msg.setCommand(tmp.substr(pos));
+        return msg;
+    }
+    msg.setCommand(tmp.substr(pos, command_end - pos));
+    pos = command_end + 1;
+
+    // get params
+    while (pos < tmp.size())
+    {
+        while (pos < tmp.size() && tmp[pos] == ' ')
+            ++pos;
+        if (pos >= tmp.size())
+            break;
+        if (tmp[pos] == ':')
+        {
+            msg.setTrailing(tmp.substr(pos + 1));
+            break;
+        }
+        size_t next_space = tmp.find(' ', pos);
+        if (next_space == std::string::npos)
+        {
+            msg.addParam(tmp.substr(pos));
+            break;
+        }
+        msg.addParam(tmp.substr(pos, next_space - pos));
+        pos = next_space + 1;
+    }
+    return msg;
 }
