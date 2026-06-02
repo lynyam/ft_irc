@@ -141,3 +141,36 @@ std::string ReplyBuilder::pong(const std::string& token)
 {
     return ":server PONG server :" + token + "\r\n";
 }
+
+std::string ReplyBuilder::quit(const Client& client, const std::string& reason)
+{
+    return ":" + client.getPrefix() + " QUIT :" + reason + "\r\n";
+}
+
+std::string ReplyBuilder::kick(const Client& client, const std::string& channel,
+                               const std::string& target, const std::string& reason)
+{
+    return ":" + client.getPrefix() + " KICK " + channel + " " + target + " :" + reason + "\r\n";
+}
+
+std::string ReplyBuilder::invite(const Client& client, const std::string& target,
+                                 const std::string& channel)
+{
+    return ":" + client.getPrefix() + " INVITE " + target + " :" + channel + "\r\n";
+}
+
+std::string ReplyBuilder::setTopic(const Client& client, const std::string& channel,
+                                   const std::string& topic)
+{
+    return ":" + client.getPrefix() + " TOPIC " + channel + " :" + topic + "\r\n";
+}
+
+std::string ReplyBuilder::nick(const std::string& oldPrefix, const std::string& newNick)
+{
+    return ":" + oldPrefix + " NICK :" + newNick + "\r\n";
+}
+
+std::string ReplyBuilder::errUnknownCommand(const std::string& nick, const std::string& command)
+{
+    return ":server 421 " + nick + " " + command + " :Unknown command\r\n";
+}

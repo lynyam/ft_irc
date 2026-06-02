@@ -39,7 +39,7 @@ void PartCommand::execute(Client& client, const CommandMessage& message,
     //check operator status before removing
     bool wasOperator = channel->isOperator(&client);
 
-    std::string reason = message.paramCount() > 1 ? message.getParam(1) : "";
+    std::string reason = message.getTrailing();
     channel->broadcast(ReplyBuilder::part(client, channelName, reason));
     channel->removeClient(&client);
     channels.removeIfEmpty(channelName);

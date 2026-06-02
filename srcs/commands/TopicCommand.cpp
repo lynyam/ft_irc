@@ -35,7 +35,7 @@ void TopicCommand::execute(Client& client, const CommandMessage& message,
         client.appendOutput(ReplyBuilder::errNotOnChannel(client.getNickname(), channelName));
         return;
     }
-    if (message.paramCount() == 1)
+    if (message.getTrailing().empty())
     {
         if (!channel->hasTopic())
         {
@@ -52,7 +52,7 @@ void TopicCommand::execute(Client& client, const CommandMessage& message,
         client.appendOutput(ReplyBuilder::errChanOPrivsNeeded(client.getNickname(), channelName));
         return;
     }
-    const std::string& newTopic = message.getParam(1);
+    const std::string& newTopic = message.getTrailing();
     channel->setTopic(newTopic);
-    channel->broadcast(":" + client.getPrefix() + " TOPIC " + channelName + " :" + newTopic + "\r\n");
+    channel->broadcast(ReplyBuilder::setTopic(client, channelName, newTopic));
 }

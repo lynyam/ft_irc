@@ -4,6 +4,7 @@
 #include "ChannelManager.hpp"
 #include "CommandMessage.hpp"
 #include "ReplyBuilder.hpp"
+#include "RegistrationHelper.hpp"
 #include <cctype>
 
 NickCommand::NickCommand() {}
@@ -48,12 +49,7 @@ void NickCommand::execute(Client& client, const CommandMessage& message,
     std::string oldPrefix = client.getPrefix();
     bool wasRegistered = client.isRegistered();
     client.setNickname(nick);
-    if (!wasRegistered && client.isRegistered())
-    {
-        client.appendOutput(ReplyBuilder::welcome(client.getNickname()));
-        client.appendOutput(ReplyBuilder::yourHost(client.getNickname()));
-        client.appendOutput(ReplyBuilder::created(client.getNickname()));
-    }
-    else if (wasRegistered)
-        client.appendOutput(":" + oldPrefix + " NICK :" + nick + "\r\n");
+    tryRegister(client);
+    if (wasRegistered)
+        client.appendOutput(ReplyBuilder::nick(oldPrefix, nick));
 }

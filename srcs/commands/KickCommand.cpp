@@ -60,9 +60,8 @@ void KickCommand::execute(Client& client, const CommandMessage& message,
     }
 
     bool targetWasOperator = channel->isOperator(target);
-    std::string reason = message.paramCount() > 2 ? message.getParam(2) : targetNick;
-    std::string kickMsg = ":" + client.getPrefix() + " KICK " + channelName + " " + targetNick + " :" + reason + "\r\n";
-    channel->broadcast(kickMsg);
+    std::string reason = message.getTrailing().empty() ? targetNick : message.getTrailing();
+    channel->broadcast(ReplyBuilder::kick(client, channelName, targetNick, reason));
     channel->removeClient(target);
 
     //auto-promote if kicked user was operator and no operator remains

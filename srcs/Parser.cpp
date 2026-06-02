@@ -45,9 +45,7 @@ CommandMessage Parser::parse(const std::string& line)
             break;
         if (tmp[pos] == ':')
         {
-            std::string trailing = tmp.substr(pos + 1);
-            msg.setTrailing(trailing);
-            msg.addParam(trailing);
+            msg.setTrailing(tmp.substr(pos + 1));
             break;
         }
         size_t next_space = tmp.find(' ', pos);

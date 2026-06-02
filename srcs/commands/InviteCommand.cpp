@@ -62,6 +62,5 @@ void InviteCommand::execute(Client& client, const CommandMessage& message,
         return;
     }
     channel->invite(target);
-    std::string inviteMsg = ":" + client.getPrefix() + " INVITE " + targetNick + " :" + channelName + "\r\n";
-    target->appendOutput(inviteMsg);
+    target->appendOutput(ReplyBuilder::invite(client, targetNick, channelName));
 }

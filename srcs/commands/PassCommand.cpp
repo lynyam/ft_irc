@@ -2,6 +2,7 @@
 #include "Client.hpp"
 #include "ReplyBuilder.hpp"
 #include "CommandMessage.hpp"
+#include "RegistrationHelper.hpp"
 
 PassCommand::PassCommand(const std::string& password)
     : _serverPassword(password) {}
@@ -31,6 +32,7 @@ void PassCommand::execute(Client& client, const CommandMessage& message,
         return;
     }
     client.setPasswordAccepted(true);
+    tryRegister(client);
 }
 
 PassCommand::~PassCommand() {}

@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/socket.h>
 
 Server::Server(int port, const std::string& password)
 	: _port(port),
@@ -98,32 +99,37 @@ void	Server::acceptClient()
 
 void	Server::readFromClient(int fd)
 {
-	(void)fd;
+	Client* client = _clients.getByFd(fd);
+	if (!client || client->isPendingDisconnect())
+		return;
     /* TODO(Leon):
-	 * - recv()
-	 * - if n > 0: appendInput()
-	 * - while hasCompleteLine(): popLine() and dispatcher.dispatch()
-	 * - if n == 0: disconnectClient()
+	 * - recv() into a buffer
+	 * - if n > 0: client->appendInput(), then while hasCompleteLine(): dispatcher.dispatch(*client, client->popLine())
+	 * - if n == 0 or n < 0: disconnectClient(fd)
 	 */
 }
 
 void	Server::writeToClient(int fd)
 {
-	(void)fd;
-    /* TODO(Leon):
-	 * - get Client*
-	 * - send output buffer
-	 * - consume sent bytes
-	 */
+	Client* client = _clients.getByFd(fd);
+	if (!client)
+		return;
+	const std::string& buf = client->getOutputBuffer();
+	if (buf.empty())
+		return;
+	ssize_t sent = send(fd, buf.c_str(), buf.size(), 0);
+	if (sent > 0)
+		client->consumeOutput(static_cast<size_t>(sent));
+	if (!client->hasPendingOutput() && client->isPendingDisconnect())
+		disconnectClient(fd);
 }
 
 void	Server::disconnectClient(int fd)
 {
-	(void)fd;
-    /* TODO(Leon):
-	 * - get Client*
-	 * - _channels.removeClientFromAllChannels(client)
-	 * - _clients.removeClient(fd)
-	 * - close(fd)
-	 */
+	Client* client = _clients.getByFd(fd);
+	if (!client)
+		return;
+	_channels.removeClientFromAllChannels(client);
+	_clients.removeClient(fd);
+	close(fd);
 }

@@ -202,8 +202,18 @@ std::string	Channel::buildModeString() const
 Client* Channel::getFirstMember() const
 {
     if (_clients.empty())
-        return nullptr;
+        return NULL;
     return *_clients.begin();
+}
+
+Client* Channel::getFirstMemberExcept(Client* excluded) const
+{
+    for (std::set<Client*>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
+    {
+        if (*it != excluded)
+            return *it;
+    }
+    return NULL;
 }
 
 bool Channel::hasOperator() const

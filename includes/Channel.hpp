@@ -58,6 +58,7 @@ class Channel
         std::string			buildModeString() const;
 
         Client*             getFirstMember() const;
+        Client*             getFirstMemberExcept(Client* excluded) const;
         bool                hasOperator() const;
     private:
         std::string			_name;

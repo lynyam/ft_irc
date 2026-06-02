@@ -6,6 +6,7 @@ Client::Client(int fd)
 	  _outputBuffer(),
 	  _passwordAccepted(false),
 	  _registered(false),
+	  _pendingDisconnect(false),
 	  _nickname(),
 	  _username(),
 	  _realname()
@@ -134,7 +135,17 @@ void	Client::markRegistered()
 	_registered = true;
 }
 
+void	Client::markPendingDisconnect()
+{
+	_pendingDisconnect = true;
+}
+
+bool	Client::isPendingDisconnect() const
+{
+	return (_pendingDisconnect);
+}
+
 std::string	Client::getPrefix() const
 {
-	return (":" + _nickname + "!" + _username + "@localhost");
+	return (_nickname + "!" + _username + "@localhost");
 }

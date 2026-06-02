@@ -41,6 +41,8 @@ class ReplyBuilder
         static std::string  errUserNotInChannel(const std::string& nick,
                                         const std::string& target,
                                         const std::string& channel);
+        static std::string  errUnknownCommand(const std::string& nick,
+                                        const std::string& command);
 
         static std::string	join(const Client& client,
                                 const std::string& channel);
@@ -65,6 +67,14 @@ class ReplyBuilder
         static std::string  mode(const std::string& serverName, const std::string& channel,
                                 const std::string& modes, const std::string& args);
         static std::string	pong(const std::string& token);
+        static std::string	quit(const Client& client, const std::string& reason);
+        static std::string	kick(const Client& client, const std::string& channel,
+                                const std::string& target, const std::string& reason);
+        static std::string	invite(const Client& client, const std::string& target,
+                                const std::string& channel);
+        static std::string	setTopic(const Client& client, const std::string& channel,
+                                const std::string& topic);
+        static std::string	nick(const std::string& oldPrefix, const std::string& newNick);
 
     private:
         ReplyBuilder();

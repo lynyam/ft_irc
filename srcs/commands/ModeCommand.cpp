@@ -121,14 +121,23 @@ void ModeCommand::execute(Client& client, const CommandMessage& message,
         else
         {
             channel->removeOperator(target);
-            // auto promote
             if (!channel->hasOperator())
             {
-                Client * newOp = channel->getFirstMember();
+                Client* newOp = channel->getFirstMemberExcept(target);
                 if (newOp)
                 {
+                    // last op removed, another member exists: auto-promote and broadcast both changes
+                    channel->broadcast(ReplyBuilder::mode(client, channelName, modeStr, arg));
                     channel->addOperator(newOp);
                     channel->broadcast(ReplyBuilder::mode("server", channelName, "+o", newOp->getNickname()));
+                    return;
+                }
+                else
+                {
+                    // last op and alone: broadcast the demotion then delete the channel
+                    channel->broadcast(ReplyBuilder::mode(client, channelName, modeStr, arg));
+                    channels.remove(channelName);
+                    return;
                 }
             }
         }
