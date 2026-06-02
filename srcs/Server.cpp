@@ -125,7 +125,8 @@ void	Server::prepareReadSet(fd_set& readSet, int& maxFd)
 	FD_SET(_serverFd, &readSet);
 	it = _clients.getAll().begin();
 	while(it != _clients.getAll().end()) {
-		FD_SET(it->first, &readSet);
+		if (!it->second->shouldDisconnect())
+			FD_SET(it->first, &readSet);
 		if (it->first > maxFd) {
 			maxFd = it->first;
 		}
@@ -140,7 +141,7 @@ void	Server::prepareWriteSet(fd_set& writeSet, int& maxFd)
 
 	it = _clients.getAll().begin();
 	while(it != _clients.getAll().end()) {
-		if (it->second->hasPendingOutput()) {
+		if (it->second->hasPendingOutput() || it->second->shouldDisconnect()) {
 			FD_SET(it->first, &writeSet);
 			if (it->first > maxFd) {
 				maxFd = it->first;
@@ -211,7 +212,7 @@ void	Server::readFromClient(int fd)
 	 * - while hasCompleteLine(): popLine() and dispatcher.dispatch()
 	 * - if n == 0: disconnectClient()
 	 */
-	int	bytesRead;
+	ssize_t	bytesRead;
 	char	buffer[512];//I put 512 because IRC has un 512 by line but need to manage ddifferently
 	Client* client = _clients.getByFd(fd);
 	std::string	line;
@@ -229,6 +230,9 @@ void	Server::readFromClient(int fd)
 						<< "]\n";
 			if (!line.empty()) {
 				_dispatcher.dispatch(*client, line);
+			}
+			if (client->shouldDisconnect()) {
+				break;
 			}
 		}
 	} else if (bytesRead == 0) {
@@ -258,9 +262,9 @@ void	Server::writeToClient(int fd)
 	 * - consume sent bytes
 	 */
 
-	Client* 	client;
+	Client* 			client;
 	const std::string*	buffer;
-	int			bytesSent;
+	int					bytesSent;
 
 	client = _clients.getByFd(fd);
 	if (!client) {
@@ -269,11 +273,17 @@ void	Server::writeToClient(int fd)
 	buffer = &client->getOutputBuffer(); // juste une copie here
 	//std::cout	<< "the outbuffer before print is: " << buffer;
 	if (buffer->empty()) {
+		if (client->shouldDisconnect()) {
+			disconnectClient(fd);
+		}
 		return; //fine grade manage here too
 	}
 	bytesSent = send(fd, buffer->c_str(), buffer->size(), 0);
 	if (bytesSent > 0) {
 		client->consumeOutput(bytesSent);
+		if (client->shouldDisconnect() && !client->hasPendingOutput()) {
+			disconnectClient(fd);
+		}
 	} else if (bytesSent < 0) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
 			return ; //manage better than silent

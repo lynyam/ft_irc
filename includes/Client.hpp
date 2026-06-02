@@ -39,6 +39,8 @@ class Client
         void				markRegistered();
 
         std::string			getPrefix() const;
+        void	requestDisconnect();
+        bool	shouldDisconnect() const;
 
     private:
         int					_fd;
@@ -51,7 +53,7 @@ class Client
         std::string			_nickname;
         std::string			_username;
         std::string			_realname;
-
+        bool	            _disconnectRequested;
     private:
         Client();
         Client(const Client& other);

@@ -8,7 +8,8 @@ Client::Client(int fd)
 	  _registered(false),
 	  _nickname(),
 	  _username(),
-	  _realname()
+	  _realname(),
+	  _disconnectRequested(false)
 {
 }
 
@@ -137,4 +138,14 @@ void	Client::markRegistered()
 std::string	Client::getPrefix() const
 {
 	return (":" + _nickname + "!" + _username + "@localhost");
+}
+
+void	Client::requestDisconnect()
+{
+	_disconnectRequested = true;
+}
+
+bool	Client::shouldDisconnect() const
+{
+	return (_disconnectRequested);
 }
