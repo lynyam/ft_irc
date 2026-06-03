@@ -220,3 +220,35 @@ std::string	Channel::buildModeString() const
 		mode += "l";
 	return (mode);
 }
+
+Client*	Channel::getFirstMember() const
+{
+	if (_clients.empty())
+		return (NULL);
+	return (*_clients.begin());
+}
+
+Client*	Channel::getFirstMemberExcept(Client* excluded) const
+{
+	for (std::set<Client*>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		if (*it != excluded)
+			return (*it);
+	}
+	return (NULL);
+}
+
+bool	Channel::hasOperator() const
+{
+	return (!_operators.empty());
+}
+
+size_t	Channel::getOperatorCount() const
+{
+	return (_operators.size());
+}
+
+const std::set<Client*>&	Channel::getClients() const
+{
+	return (_clients);
+}

@@ -205,20 +205,18 @@ void	Server::acceptClient()
 
 void	Server::readFromClient(int fd)
 {
-	(void)fd;
+	Client* client = _clients.getByFd(fd);
+	if (!client || client->isDisconnectRequested())
+		return;
     /* TODO(Leon):
-	 * - recv()
-	 * - if n > 0: appendInput()
-	 * - while hasCompleteLine(): popLine() and dispatcher.dispatch()
-	 * - if n == 0: disconnectClient()
+	 * - recv() into a buffer
+	 * - if n > 0: client->appendInput(), then while hasCompleteLine(): dispatcher.dispatch(*client, client->popLine())
+	 * - if n == 0 or n < 0: disconnectClient(fd)
 	 */
 	ssize_t	bytesRead;
 	char	buffer[512];//I put 512 because IRC has un 512 by line but need to manage ddifferently
-	Client* client = _clients.getByFd(fd);
 	std::string	line;
 
-	if (!client)
-		return ;//TODO: (leon) fine grade management instead to silent managment
 	bytesRead = recv(fd, &buffer, sizeof(buffer), 0);
 	if (bytesRead > 0) {
 		client->appendInput(std::string(buffer, bytesRead));	//choice using this than std::string(buffer) bcs no garanty buffer \0 terminanted 

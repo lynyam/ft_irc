@@ -36,6 +36,16 @@ class ReplyBuilder
                                             const std::string& channel);
         static std::string	errChannelIsFull(const std::string& nick,
                                             const std::string& channel);
+        static std::string  errNotOnChannel(const std::string& nick,
+                                    const std::string& channel);
+        static std::string  errUserNotInChannel(const std::string& nick,
+                                        const std::string& target,
+                                        const std::string& channel);
+        static std::string  errUnknownCommand(const std::string& nick,
+                                        const std::string& command);
+        static std::string  errErroneousNickname(const std::string& nick);
+        static std::string  errUnknownMode(const std::string& nick, char mode);
+        static std::string  errNoTextToSend(const std::string& nick);
 
         static std::string	join(const Client& client,
                                 const std::string& channel);
@@ -45,6 +55,8 @@ class ReplyBuilder
         static std::string	privmsg(const Client& from,
                                     const std::string& target,
                                     const std::string& text);
+        static std::string	noTopic(const std::string& nick,
+                                const std::string& channel);
         static std::string	topic(const std::string& nick,
                                 const std::string& channel,
                                 const std::string& topic);
@@ -57,12 +69,28 @@ class ReplyBuilder
                                 const std::string& channel,
                                 const std::string& modes,
                                 const std::string& args);
+        static std::string  mode(const std::string& serverName, const std::string& channel,
+                                const std::string& modes, const std::string& args);
         static std::string	pong(const std::string& token);
+        static void         tryRegister(Client& client);
+        static std::string	quit(const Client& client, const std::string& reason);
+        static std::string	kick(const Client& client, const std::string& channel,
+                                const std::string& target, const std::string& reason);
+        static std::string	invite(const Client& client, const std::string& target,
+                                const std::string& channel);
+        static std::string  rplInviting(const std::string& nick, const std::string& target,
+                                const std::string& channel);
+        static std::string	setTopic(const Client& client, const std::string& channel,
+                                const std::string& topic);
+        static std::string	nick(const std::string& oldPrefix, const std::string& newNick);
+        static std::string	errorClosingLink(const std::string& nick, const std::string& reason);
 
     private:
         ReplyBuilder();
         ReplyBuilder(const ReplyBuilder& other);
         ReplyBuilder&	operator=(const ReplyBuilder& other);
+
+        static std::string  resolveNick(const std::string& nick);
 };
 
 #endif

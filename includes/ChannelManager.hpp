@@ -24,7 +24,8 @@ class ChannelManager
         void									remove(const std::string& name);
         void									removeIfEmpty(const std::string& name);
 
-        void									removeClientFromAllChannels(Client* client);
+        void                                    removeClientFromAllChannels(Client* client);
+        void                                    broadcastToClientChannels(Client* client, const std::string& message);
 
         std::map<std::string, Channel*>&			getAll();
         const std::map<std::string, Channel*>&	getAll() const;
