@@ -153,17 +153,6 @@ std::string ReplyBuilder::pong(const std::string& token)
     return ":server PONG server :" + token + "\r\n";
 }
 
-void ReplyBuilder::tryRegister(Client& client)
-{
-    if (!client.isRegistered() && client.canRegister())
-    {
-        client.markRegistered();
-        client.appendOutput(ReplyBuilder::welcome(client.getNickname()));
-        client.appendOutput(ReplyBuilder::yourHost(client.getNickname()));
-        client.appendOutput(ReplyBuilder::created(client.getNickname()));
-    }
-}
-
 std::string ReplyBuilder::quit(const Client& client, const std::string& reason)
 {
     return client.getPrefix() + " QUIT :" + reason + "\r\n";

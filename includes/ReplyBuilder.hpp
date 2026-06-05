@@ -72,7 +72,6 @@ class ReplyBuilder
         static std::string  mode(const std::string& serverName, const std::string& channel,
                                 const std::string& modes, const std::string& args);
         static std::string	pong(const std::string& token);
-        static void         tryRegister(Client& client);
         static std::string	quit(const Client& client, const std::string& reason);
         static std::string	kick(const Client& client, const std::string& channel,
                                 const std::string& target, const std::string& reason);

@@ -26,8 +26,15 @@ CommandDispatcher::CommandDispatcher(ClientManager& clients,
 
 CommandDispatcher::~CommandDispatcher()
 {
-    for (CommandMap::iterator it = _commands.begin(); it != _commands.end(); ++it)
-        delete it->second;
+    CommandMap::iterator	it;
+
+	it = _commands.begin();
+	while (it != _commands.end())
+	{
+		delete it->second;
+		++it;
+	}
+	_commands.clear();
 }
 
 void CommandDispatcher::registerCommands()
@@ -50,7 +57,10 @@ void CommandDispatcher::dispatch(Client& client, const CommandMessage& message)
 {
     if (message.getCommand().empty())
         return;
-    const std::string& nick = client.getNickname().empty() ? "*" : client.getNickname();
+    std::string nick;
+    nick = client.getNickname();
+    if (nick.empty())
+        nick = "*";
     CommandMap::iterator it = _commands.find(message.getCommand());
     if (it == _commands.end())
     {

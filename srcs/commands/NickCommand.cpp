@@ -4,6 +4,7 @@
 #include "ChannelManager.hpp"
 #include "CommandMessage.hpp"
 #include "ReplyBuilder.hpp"
+#include "CommandUtils.hpp"
 #include <cctype>
 
 NickCommand::NickCommand() {}
@@ -53,10 +54,12 @@ void NickCommand::execute(Client& client, const CommandMessage& message,
     std::string oldPrefix = client.getPrefix();
     bool wasRegistered = client.isRegistered();
     client.setNickname(nick);
-    ReplyBuilder::tryRegister(client);
+    CommandUtils::tryRegister(client);
     if (wasRegistered)
     {
-        client.appendOutput(ReplyBuilder::nick(oldPrefix, nick));
-        channels.broadcastToClientChannels(&client, ReplyBuilder::nick(oldPrefix, nick));
+        std::string nickMsg;
+        nickMsg = ReplyBuilder::nick(oldPrefix, nick);
+        client.appendOutput(nickMsg);
+        channels.broadcastToClientChannels(&client, nickMsg);
     }
 }

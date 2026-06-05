@@ -8,6 +8,7 @@
 # include "ChannelManager.hpp"
 
 class CommandMessage;
+class Client;
 
 class CommandDispatcher
 {

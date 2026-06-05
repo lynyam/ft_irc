@@ -13,6 +13,7 @@ SRCS	= srcs/main.cpp \
 	srcs/CommandMessage.cpp \
 	srcs/Parser.cpp \
 	srcs/CommandDispatcher.cpp \
+	srcs/CommandUtils.cpp \
 	srcs/ReplyBuilder.cpp \
 	srcs/commands/PassCommand.cpp \
 	srcs/commands/NickCommand.cpp \

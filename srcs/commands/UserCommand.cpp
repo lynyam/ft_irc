@@ -4,6 +4,7 @@
 #include "ChannelManager.hpp"
 #include "CommandMessage.hpp"
 #include "ReplyBuilder.hpp"
+#include "CommandUtils.hpp"
 
 UserCommand::UserCommand() {}
 UserCommand::~UserCommand() {}
@@ -31,5 +32,5 @@ void UserCommand::execute(Client& client, const CommandMessage& message,
     }
     client.setUsername(message.getParam(0));
     client.setRealname(message.getTrailing());
-    ReplyBuilder::tryRegister(client);
+    CommandUtils::tryRegister(client);
 }

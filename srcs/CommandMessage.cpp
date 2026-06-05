@@ -66,7 +66,10 @@ bool	CommandMessage::hasParam(size_t index) const
 
 const std::string&	CommandMessage::getParam(size_t index) const
 {
-	return (_params[index]);
+	static const std::string	empty;
+	if (hasParam(index))
+		return (_params[index]);
+	return (empty);
 }
 
 size_t	CommandMessage::paramCount() const
