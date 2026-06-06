@@ -24,13 +24,16 @@ void UserCommand::execute(Client& client, const CommandMessage& message,
         client.appendOutput(ReplyBuilder::errAlreadyRegistered(client.getNickname()));
         return;
     }
-    if (!message.hasParam(0) || !message.hasParam(1)
-        || !message.hasParam(2) || message.getTrailing().empty())
+    if (!message.hasParam(0) || !message.hasParam(1) || !message.hasParam(2))
     {
         client.appendOutput(ReplyBuilder::errNeedMoreParams(client.getNickname(), "USER"));
         return;
     }
-    client.setUsername(message.getParam(0));
-    client.setRealname(message.getTrailing());
+    std::string userName = message.getParam(0);
+    client.setUsername(userName);
+    std::string realName = message.getTrailing();
+    if (!message.hasTrailing() || realName.empty())
+        realName = userName;
+    client.setRealname(realName);
     CommandUtils::tryRegister(client);
 }

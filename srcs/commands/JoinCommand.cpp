@@ -5,32 +5,26 @@
 #include "Channel.hpp"
 #include "CommandMessage.hpp"
 #include "ReplyBuilder.hpp"
+#include "CommandUtils.hpp"
 
 JoinCommand::JoinCommand() {}
 JoinCommand::~JoinCommand() {}
 
-void JoinCommand::execute(Client& client, const CommandMessage& message,
-                          ClientManager& clients, ChannelManager& channels)
+
+
+static void	joinOneChannel(Client& client, ChannelManager& channels,
+	const std::string& channelName, const std::string& key)
 {
-    (void)clients;
-    if (!client.isRegistered())
-    {
-        client.appendOutput(ReplyBuilder::errNotRegistered(client.getNickname()));
-        return;
-    }
-    if (message.paramCount() < 1)
-    {
-        client.appendOutput(ReplyBuilder::errNeedMoreParams(client.getNickname(), "JOIN"));
-        return;
-    }
-    const std::string& channelName = message.getParam(0);
+    bool    isNewChannel;
+    Channel*    channel;
+
     if (channelName.empty() || channelName[0] != '#')
     {
         client.appendOutput(ReplyBuilder::errNoSuchChannel(client.getNickname(), channelName));
         return;
     }
-    bool isNewChannel = !channels.exists(channelName);
-    Channel* channel = channels.getOrCreate(channelName);
+    isNewChannel = !channels.exists(channelName);
+    channel = channels.getOrCreate(channelName);
     if (!channel)
     {
         client.appendOutput(ReplyBuilder::errNoSuchChannel(client.getNickname(), channelName));
@@ -48,7 +42,7 @@ void JoinCommand::execute(Client& client, const CommandMessage& message,
         channels.removeIfEmpty(channelName);
         return;
     }
-    if (channel->hasKey() && (message.paramCount() < 2 || !channel->checkKey(message.getParam(1))))
+    if (channel->hasKey() && !channel->checkKey(key))
     {
         client.appendOutput(ReplyBuilder::errBadChannelKey(client.getNickname(), channelName));
         channels.removeIfEmpty(channelName);
@@ -66,6 +60,44 @@ void JoinCommand::execute(Client& client, const CommandMessage& message,
     if (isNewChannel)
         channel->addOperator(&client);
     channel->broadcast(ReplyBuilder::join(client, channelName));
+    if (channel->hasTopic()) {
+        client.appendOutput(ReplyBuilder::topic( client.getNickname(), channelName, 
+            channel->getTopic()));
+    }
     client.appendOutput(ReplyBuilder::namReply(client.getNickname(), channelName, channel->buildNamesList()));
     client.appendOutput(ReplyBuilder::endOfNames(client.getNickname(), channelName));
+}
+
+void JoinCommand::execute(Client& client, const CommandMessage& message,
+                          ClientManager& clients, ChannelManager& channels)
+{
+    (void)clients;
+    std::vector<std::string>	channelNames;
+	std::vector<std::string>	keys;
+	size_t  i;
+	std::string key;
+
+    if (!client.isRegistered())
+    {
+        client.appendOutput(ReplyBuilder::errNotRegistered(client.getNickname()));
+        return;
+    }
+    if (!message.hasParam(0))
+    {
+        client.appendOutput(ReplyBuilder::errNeedMoreParams(client.getNickname(), "JOIN"));
+        return;
+    }
+    channelNames = CommandUtils::splitComma(message.getParam(0));
+    if (message.hasParam(1)) {
+		keys = CommandUtils::splitComma(message.getParam(1));
+    }
+    i = 0;
+	while (i < channelNames.size())
+	{
+		key = "";
+		if (i < keys.size())
+			key = keys[i];
+		joinOneChannel(client, channels, channelNames[i], key);
+		++i;
+	}
 }
