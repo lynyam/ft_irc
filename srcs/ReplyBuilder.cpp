@@ -1,6 +1,10 @@
 #include "ReplyBuilder.hpp"
 #include "Client.hpp"
 
+static std::string applyReason(std::string msg, std::string reason) {
+    return reason.empty() ? msg : msg + " " + reason;
+}
+
 std::string ReplyBuilder::resolveNick(const std::string& nick)
 {
     return nick.empty() ? "*" : nick;
@@ -110,9 +114,7 @@ std::string ReplyBuilder::join(const Client& client, const std::string& channel)
 std::string ReplyBuilder::part(const Client& client, const std::string& channel, const std::string& reason)
 {
     std::string msg = client.getPrefix() + " PART " + channel;
-    if (!reason.empty())
-        msg += " :" + reason;
-    return msg + "\r\n";
+    return applyReason(msg, reason) + "\r\n";
 }
 
 std::string ReplyBuilder::privmsg(const Client& from, const std::string& target, const std::string& text)
@@ -164,7 +166,8 @@ std::string ReplyBuilder::quit(const Client& client, const std::string& reason)
 std::string ReplyBuilder::kick(const Client& client, const std::string& channel,
                                const std::string& target, const std::string& reason)
 {
-    return client.getPrefix() + " KICK " + channel + " " + target + " :" + reason + "\r\n";
+    std::string msg = client.getPrefix() + " KICK " + channel + " " + target;
+    return applyReason(msg, reason) + "\r\n";
 }
 
 std::string ReplyBuilder::invite(const Client& client, const std::string& target,
