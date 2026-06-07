@@ -5,13 +5,65 @@
 #include "Channel.hpp"
 #include "CommandMessage.hpp"
 #include "ReplyBuilder.hpp"
+#include "CommandUtils.hpp"
 
 PrivmsgCommand::PrivmsgCommand() {}
 PrivmsgCommand::~PrivmsgCommand() {}
 
+static void sendToChannel(Client& client, ChannelManager& channels,
+	const std::string& target, const std::string& text)
+{
+    Channel* channel = channels.get(target);
+    if (!channel)
+    {
+        client.appendOutput(ReplyBuilder::errNoSuchChannel(client.getNickname(), target));
+        return;
+    }
+    if (!channel->hasClient(&client))
+    {
+        client.appendOutput(ReplyBuilder::errCannotSendToChan(client.getNickname(), target));
+        return;
+    }
+    channel->broadcastExcept(&client, ReplyBuilder::privmsg(client, target, text));    
+}
+
+static void sendToUser(Client& client, ClientManager& clients, const std::string& target, 
+    const std::string& text) {
+    Client* targetClient = clients.getByNickname(target);
+
+    if (targetClient == NULL)
+    {
+        client.appendOutput(ReplyBuilder::errNoSuchNick(client.getNickname(), target));
+        return;
+    }
+    targetClient->appendOutput(ReplyBuilder::privmsg(client, target, text));
+}
+
+static void	sendToTarget(Client& client, ClientManager& clients,
+	ChannelManager& channels, const std::string& target,
+	const std::string& text)
+{
+    if (target.empty())
+    {
+        client.appendOutput(ReplyBuilder::errNeedMoreParams(client.getNickname(), "PRIVMSG"));
+        return;
+    }
+    if (target[0] == '#') {
+        sendToChannel(client, channels, target, text);
+    }
+    else
+    {
+        sendToUser(client, clients, target, text);
+    }
+}
+
 void PrivmsgCommand::execute(Client& client, const CommandMessage& message,
                              ClientManager& clients, ChannelManager& channels)
 {
+    std::vector<std::string>    targets;
+	std::string text;
+	size_t  i;
+
     if (!client.isRegistered())
     {
         client.appendOutput(ReplyBuilder::errNotRegistered(client.getNickname()));
@@ -22,41 +74,22 @@ void PrivmsgCommand::execute(Client& client, const CommandMessage& message,
         client.appendOutput(ReplyBuilder::errNeedMoreParams(client.getNickname(), "PRIVMSG"));
         return;
     }
-    const std::string& target = message.getParam(0);
-    if (target.empty())
-    {
-        client.appendOutput(ReplyBuilder::errNeedMoreParams(client.getNickname(), "PRIVMSG"));
-        return;
-    }
     if (!message.hasTrailing())
     {
         client.appendOutput(ReplyBuilder::errNoTextToSend(client.getNickname()));
         return;
     }
-    const std::string& text = message.getTrailing();
-    if (target[0] == '#')
+    text = message.getTrailing();
+    if (text.empty())
     {
-        Channel* channel = channels.get(target);
-        if (!channel)
-        {
-            client.appendOutput(ReplyBuilder::errNoSuchChannel(client.getNickname(), target));
-            return;
-        }
-        if (!channel->hasClient(&client))
-        {
-            client.appendOutput(ReplyBuilder::errCannotSendToChan(client.getNickname(), target));
-            return;
-        }
-        channel->broadcastExcept(&client, ReplyBuilder::privmsg(client, target, text));
+        client.appendOutput(ReplyBuilder::errNoTextToSend(client.getNickname()));
+        return;
     }
-    else
-    {
-        Client* targetClient = clients.getByNickname(target);
-        if (targetClient == NULL)
-        {
-            client.appendOutput(ReplyBuilder::errNoSuchNick(client.getNickname(), target));
-            return;
-        }
-        targetClient->appendOutput(ReplyBuilder::privmsg(client, target, text));
-    }
+    targets = CommandUtils::splitComma(message.getParam(0));
+	i = 0;
+	while (i < targets.size())
+	{
+		sendToTarget(client, clients, channels, targets[i], text);
+		++i;
+	}
 }

@@ -110,9 +110,9 @@ std::string ReplyBuilder::join(const Client& client, const std::string& channel)
 std::string ReplyBuilder::part(const Client& client, const std::string& channel, const std::string& reason)
 {
     std::string msg = client.getPrefix() + " PART " + channel;
-    if (reason.empty())
-        return msg + "\r\n";
-    return msg + " :" + reason + "\r\n";
+    if (!reason.empty())
+        msg += " :" + reason;
+    return msg + "\r\n";
 }
 
 std::string ReplyBuilder::privmsg(const Client& from, const std::string& target, const std::string& text)
