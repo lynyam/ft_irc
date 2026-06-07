@@ -89,7 +89,7 @@ bool	Channel::isInvited(Client* client) const
 void	Channel::setTopic(const std::string& topic)
 {
 	_topic = topic;
-	_hasTopic = true;
+	_hasTopic = !topic.empty();;
 }
 
 const std::string&	Channel::getTopic() const

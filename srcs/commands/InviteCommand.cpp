@@ -9,16 +9,6 @@
 InviteCommand::InviteCommand() {}
 InviteCommand::~InviteCommand() {}
 
-/**
- * check if isRegistered
- * check if the size of parameter is less than 2
- * get targetNickname and channelName
- * check if the channel exists
- * check if the client is operator
- * find the target client
- * check if target is NULL
- * check if channel already has target
- */
 void InviteCommand::execute(Client& client, const CommandMessage& message,
                             ClientManager& clients, ChannelManager& channels)
 {
@@ -45,6 +35,8 @@ void InviteCommand::execute(Client& client, const CommandMessage& message,
         client.appendOutput(ReplyBuilder::errNotOnChannel(client.getNickname(), channelName));
         return;
     }
+    //FOR IRC-like i will say but to fit the subject i implement only INVITE for Op
+    //if (channel->isInviteOnly() && !channel->isOperator(&client))
     if (!channel->isOperator(&client))
     {
         client.appendOutput(ReplyBuilder::errChanOPrivsNeeded(client.getNickname(), channelName));

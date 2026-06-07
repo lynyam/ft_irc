@@ -173,7 +173,7 @@ std::string ReplyBuilder::kick(const Client& client, const std::string& channel,
 std::string ReplyBuilder::invite(const Client& client, const std::string& target,
                                  const std::string& channel)
 {
-    return client.getPrefix() + " INVITE " + target + " :" + channel + "\r\n";
+    return client.getPrefix() + " INVITE " + target + " " + channel + "\r\n";
 }
 
 std::string ReplyBuilder::rplInviting(const std::string& nick, const std::string& target,

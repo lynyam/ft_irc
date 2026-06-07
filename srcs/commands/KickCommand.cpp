@@ -6,6 +6,7 @@
 #include "CommandMessage.hpp"
 #include "ReplyBuilder.hpp"
 #include "CommandUtils.hpp"
+#include <vector>
 
 KickCommand::KickCommand() {}
 KickCommand::~KickCommand() {}
