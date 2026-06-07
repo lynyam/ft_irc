@@ -206,7 +206,7 @@ void	Server::acceptClient()
 void	Server::readFromClient(int fd)
 {
 	Client* client = _clients.getByFd(fd);
-	if (!client || client->isDisconnectRequested())
+	if (!client || client->shouldDisconnect())
 		return;
     /* TODO(Leon):
 	 * - recv() into a buffer
@@ -217,7 +217,7 @@ void	Server::readFromClient(int fd)
 	char	buffer[512];//I put 512 because IRC has un 512 by line but need to manage ddifferently
 	std::string	line;
 
-	bytesRead = recv(fd, &buffer, sizeof(buffer), 0);
+	bytesRead = recv(fd, buffer, sizeof(buffer), 0);
 	if (bytesRead > 0) {
 		client->appendInput(std::string(buffer, bytesRead));	//choice using this than std::string(buffer) bcs no garanty buffer \0 terminanted 
 		while (client->hasCompleteLine()) {

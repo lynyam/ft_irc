@@ -1,5 +1,6 @@
 #include "ChannelManager.hpp"
 #include "Client.hpp"
+#include "ReplyBuilder.hpp"
 #include <set>
 
 ChannelManager::ChannelManager()
@@ -90,20 +91,40 @@ void	ChannelManager::removeIfEmpty(const std::string& name)
 
 void	ChannelManager::removeClientFromAllChannels(Client* client)
 {
-	std::map<std::string, Channel*>::iterator	it = _channels.begin();
+	std::map<std::string, Channel*>::iterator	it;
+	std::map<std::string, Channel*>::iterator	next;
+	Channel*	channel;
+	bool		wasOperator;
+	Client*		newOp;
+
+	it = _channels.begin();
 	while (it != _channels.end())
 	{
-		it->second->removeClient(client);
-		if (it->second->isEmpty())
+		channel = it->second;
+		wasOperator = channel->isOperator(client);
+		channel->removeClient(client);
+		if (channel->isEmpty())
 		{
-			std::map<std::string, Channel*>::iterator next = it;
+			next = it;
 			++next;
-			delete it->second;
+			delete channel;
 			_channels.erase(it);
 			it = next;
 		}
 		else
+		{
+			if (wasOperator && !channel->hasOperator())
+			{
+				newOp = channel->getFirstMember();
+				if (newOp) {
+					channel->addOperator(newOp);
+					channel->broadcast(ReplyBuilder::mode(
+				"server", channel->getName(), "+o", newOp->getNickname()));
+		
+				}
+			}
 			++it;
+		}
 	}
 }
 
