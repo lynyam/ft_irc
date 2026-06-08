@@ -14,7 +14,7 @@ void PingCommand::execute(Client& client, const CommandMessage& message,
     (void)clients;
     (void)channels;
     std::string token;
-    if (!message.getTrailing().empty())
+    if (message.hasTrailing())
         token = message.getTrailing();
     else if (message.hasParam(0))
         token = message.getParam(0);
