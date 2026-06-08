@@ -89,7 +89,7 @@ bool	Channel::isInvited(Client* client) const
 void	Channel::setTopic(const std::string& topic)
 {
 	_topic = topic;
-	_hasTopic = !topic.empty();;
+	_hasTopic = !topic.empty();
 }
 
 const std::string&	Channel::getTopic() const
@@ -209,7 +209,7 @@ std::string	Channel::buildNamesList() const
 
 std::string	Channel::buildModeString() const
 {
-	std::string mode = "+";
+	std::string mode;
 	if (_inviteOnly)
 		mode += "i";
 	if (_topicProtected)
@@ -218,7 +218,7 @@ std::string	Channel::buildModeString() const
 		mode += "k";
 	if (_hasUserLimit)
 		mode += "l";
-	return (mode);
+	return ("+" + mode);
 }
 
 Client*	Channel::getFirstMember() const

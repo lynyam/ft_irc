@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <cstring>
 #include <cerrno>
+#include <map>
 
 Server::Server(int port, const std::string& password)
 	: _port(port),
@@ -19,8 +20,22 @@ Server::Server(int port, const std::string& password)
 {
 }
 
+void	Server::closeAllClientFds()
+{
+	std::map<int, Client*>::iterator	it;
+
+	it = _clients.getAll().begin();
+	while (it != _clients.getAll().end())
+	{
+		if (it->first >= 0)
+			close(it->first);
+		++it;
+	}
+}
+
 Server::~Server()
 {
+	closeAllClientFds();
 	if (_serverFd >= 0)
 		close(_serverFd);
 }
@@ -41,13 +56,6 @@ void	Server::stop()
 
 void	Server::initSocket()
 {
-    /* TODO(Leon):
-	 * - socket()
-	 * - setsockopt(SO_REUSEADDR)
-	 * - bind()
-	 * - listen()
-	 * - setNonBlocking(_serverFd)
-	 */
 	int	option;
 	struct sockaddr_in	address;
 
@@ -86,13 +94,6 @@ void	Server::setNonBlocking(int fd)
 
 void	Server::eventLoop()
 {
-    /* TODO(Leon):
-	 * - build readSet/writeSet
-	 * - call select()
-	 * - accept readable serverFd
-	 * - recv readable client fds
-	 * - send writable client fds
-	 */
 	fd_set	readSet;
 	fd_set	writeSet;
 	int		maxFd;
@@ -107,12 +108,10 @@ void	Server::eventLoop()
 		readyCount = select(maxFd + 1, &readSet, 
 			&writeSet, NULL, NULL);
 		if (readyCount < 0) {
+			if (errno == EINTR)
+				continue;
 			throw std::runtime_error("select failed");
 		}
-		/*if (FD_ISSET(_serverFd, &readSet)) {
-			std::cout << "Friend are going to be accepted\n";
-			acceptClient();
-		}*/
 		handleReadableFds(readSet, maxFd);
 		handleWritableFds(writeSet, maxFd);
 	}
@@ -183,49 +182,44 @@ void	Server::handleWritableFds(fd_set& writeSet, int maxFd)
 
 void	Server::acceptClient()
 {
-    /* TODO(Leon):
-	 * - accept()
-	 * - set client fd non-blocking
-	 * - _clients.addClient(clientFd)
-	 */
 	int clientFd;
 
-	clientFd = accept(_serverFd, NULL, NULL); /*to-do: test for get clientAddr*/
+	clientFd = accept(_serverFd, NULL, NULL);
 	if (clientFd < 0) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK)
 			return ;
 		throw std::runtime_error("accept failed");
 	}
+	if (clientFd >= FD_SETSIZE)
+	{
+		close(clientFd);
+		return ;
+	}
 	setNonBlocking(clientFd); //bcse the new fd don't inherit of this tag
 	_clients.addClient(clientFd);
-	//[RMV] test write to client
-	//_clients.getByFd(clientFd)->appendOutput("Welcome test\r\n");
 	std::cout << "new client connected on fd " << clientFd << std::endl;
 }
 
 void	Server::readFromClient(int fd)
 {
-	Client* client = _clients.getByFd(fd);
-	if (!client || client->shouldDisconnect())
-		return;
-    /* TODO(Leon):
-	 * - recv() into a buffer
-	 * - if n > 0: client->appendInput(), then while hasCompleteLine(): dispatcher.dispatch(*client, client->popLine())
-	 * - if n == 0 or n < 0: disconnectClient(fd)
-	 */
 	ssize_t	bytesRead;
 	char	buffer[512];//I put 512 because IRC has un 512 by line but need to manage ddifferently
 	std::string	line;
 
+	Client* client = _clients.getByFd(fd);
+	if (!client || client->shouldDisconnect())
+		return;
 	bytesRead = recv(fd, buffer, sizeof(buffer), 0);
 	if (bytesRead > 0) {
 		client->appendInput(std::string(buffer, bytesRead));	//choice using this than std::string(buffer) bcs no garanty buffer \0 terminanted 
+		if (client->shouldDisconnect() 
+			&& !client->hasPendingOutput())
+		{
+			disconnectClient(fd);
+			return ;
+		}
 		while (client->hasCompleteLine()) {
 			line = client->popLine();
-			//for my debug
-			std::cout	<< "received line: ["
-						<< line
-						<< "]\n";
 			if (!line.empty()) {
 				_dispatcher.dispatch(*client, line);
 			}
@@ -233,6 +227,8 @@ void	Server::readFromClient(int fd)
 				break;
 			}
 		}
+		if (client->shouldDisconnect() && !client->hasPendingOutput())
+			disconnectClient(fd);
 	} else if (bytesRead == 0) {
 		std::cout << "client disconnected on fd "
 				  << fd
@@ -240,7 +236,7 @@ void	Server::readFromClient(int fd)
 		disconnectClient(fd);
 	} else {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
-			return ; //TODO (leon) gestion plus explicite 
+			return ; 
 		}
 		std::cout	<< "recv error on fd "
 					<< fd
@@ -253,28 +249,21 @@ void	Server::readFromClient(int fd)
 
 void	Server::writeToClient(int fd)
 {
-	(void)fd;
-    /* TODO(Leon):
-	 * - get Client*
-	 * - send output buffer
-	 * - consume sent bytes
-	 */
 
 	Client* 			client;
 	const std::string*	buffer;
-	int					bytesSent;
+	ssize_t				bytesSent;
 
 	client = _clients.getByFd(fd);
 	if (!client) {
-		return ; //TODO (Leon): manage better this silent return ;)
+		return ;
 	}
-	buffer = &client->getOutputBuffer(); // juste une copie here
-	//std::cout	<< "the outbuffer before print is: " << buffer;
+	buffer = &client->getOutputBuffer();
 	if (buffer->empty()) {
 		if (client->shouldDisconnect()) {
 			disconnectClient(fd);
 		}
-		return; //fine grade manage here too
+		return;
 	}
 	bytesSent = send(fd, buffer->c_str(), buffer->size(), 0);
 	if (bytesSent > 0) {
@@ -282,9 +271,16 @@ void	Server::writeToClient(int fd)
 		if (client->shouldDisconnect() && !client->hasPendingOutput()) {
 			disconnectClient(fd);
 		}
-	} else if (bytesSent < 0) {
+	} 
+	else if (bytesSent == 0)
+	{
+		if (client->shouldDisconnect())
+			disconnectClient(fd);
+	}
+	else 
+	{
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
-			return ; //manage better than silent
+			return ;
 		}
 		std::cout	<< "send error on fd "
 					<< fd
@@ -292,25 +288,23 @@ void	Server::writeToClient(int fd)
 		disconnectClient(fd);
 	}
 	
+	
 }
 
 void	Server::disconnectClient(int fd)
 {
-	(void)fd;
-    /* TODO(Leon):
-	 * - get Client*
-	 * - _channels.removeClientFromAllChannels(client)
-	 * - _clients.removeClient(fd)
-	 * - close(fd)
-	 */
 	Client *client;
 
 	client = _clients.getByFd(fd);
 	if (client) {
+		std::cout << "disconnecting client fd " << fd;
+		if (!client->getNickname().empty())
+			std::cout << " (" << client->getNickname() << ")";
+		std::cout << std::endl;
 		_channels.removeClientFromAllChannels(client);
 	}
 	_clients.removeClient(fd);
-	if (fd > 0) {
+	if (fd >= 0) {
 		close(fd);
 	}
 }

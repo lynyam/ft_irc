@@ -41,6 +41,7 @@ class Server
         void	readFromClient(int fd);
         void	writeToClient(int fd);
         void	disconnectClient(int fd);
+        void	closeAllClientFds();
 
     private:
         Server();

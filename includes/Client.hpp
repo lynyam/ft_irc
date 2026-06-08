@@ -7,6 +7,9 @@
 class Client
 {
     public:
+        static const size_t	IRC_MAX_MESSAGE_SIZE = 512;
+		static const size_t	IRC_MAX_LINE_SIZE = 510;
+
         Client(int fd);
         ~Client();
 
@@ -41,7 +44,7 @@ class Client
         void				requestDisconnect();
 
         std::string			getPrefix() const;
-        bool	shouldDisconnect() const;
+        bool                shouldDisconnect() const;
 
     private:
         int					_fd;
@@ -59,5 +62,6 @@ class Client
         Client();
         Client(const Client& other);
         Client&				operator=(const Client& other);
+        void                checkPendingLineLimit();
 };
 #endif

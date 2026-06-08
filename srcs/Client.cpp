@@ -1,5 +1,16 @@
 #include "Client.hpp"
 
+/*
+ * IRC messages are limited to 512 bytes including the trailing CRLF.
+ * Since popLine() removes CRLF before parsing, Parser must receive at most
+ * 510 bytes.
+ *
+ * Modern IRC guidance allows several strategies for oversized input:
+ * sending ERR_INPUTTOOLONG, truncating, ignoring, or closing the connection.
+ * For this project, we choose to request disconnection on oversized input.
+ * This keeps the input buffer bounded and avoids parsing invalid messages.
+ */
+
 Client::Client(int fd)
 	: _fd(fd),
 	  _inputBuffer(),
@@ -17,6 +28,16 @@ Client::~Client()
 {
 }
 
+void	Client::checkPendingLineLimit()
+{
+	std::string::size_type	newline;
+
+	newline = _inputBuffer.find('\n');
+	if (newline == std::string::npos
+		&& _inputBuffer.size() >= IRC_MAX_MESSAGE_SIZE)
+		requestDisconnect();
+}
+
 int	Client::getFd() const
 {
 	return (_fd);
@@ -25,6 +46,7 @@ int	Client::getFd() const
 void	Client::appendInput(const std::string& data)
 {
 	_inputBuffer += data;
+	checkPendingLineLimit();
 }
 
 bool	Client::hasCompleteLine() const
@@ -40,10 +62,22 @@ std::string	Client::popLine()
 	pos = _inputBuffer.find('\n');
 	if (pos == std::string::npos)
 		return ("");
+	if (pos + 1 > IRC_MAX_MESSAGE_SIZE)
+	{
+		_inputBuffer.erase(0, pos + 1);
+		requestDisconnect();
+		return ("");
+	}
 	line = _inputBuffer.substr(0, pos);
+	_inputBuffer.erase(0, pos + 1);
+	checkPendingLineLimit();
 	if (!line.empty() && line[line.size() - 1] == '\r')
 		line.erase(line.size() - 1);
-	_inputBuffer.erase(0, pos + 1);
+	if (line.size() > IRC_MAX_LINE_SIZE)
+	{
+		requestDisconnect();
+		return ("");
+	}
 	return (line);
 }
 

@@ -46,8 +46,8 @@ Channel*	ChannelManager::create(const std::string& name)
 	if (name.empty())
 		return (NULL);
 	Channel* channel = get(name);
-	if (channel)
-		return (channel);
+	if (exists(name))
+		return (NULL);
 	channel = new Channel(name);
 	_channels[name] = channel;
 	return (channel);
@@ -97,6 +97,8 @@ void	ChannelManager::removeClientFromAllChannels(Client* client)
 	bool		wasOperator;
 	Client*		newOp;
 
+	if (!client)
+		return ;
 	it = _channels.begin();
 	while (it != _channels.end())
 	{
@@ -134,6 +136,8 @@ void	ChannelManager::broadcastToClientChannels(Client* client, const std::string
 	std::set<Client*>							recipients;
 	std::set<Client*>::const_iterator			clientIt;
 
+	if (!client)
+		return ;
 	it = _channels.begin();
 	while (it != _channels.end())
 	{
