@@ -3,6 +3,7 @@
 #include "Server.hpp"
 #include <signal.h>
 #include <cerrno>
+#include "SignalHandler.hpp"
 
 static bool	isValidPort(const std::string& value)
 {
@@ -63,7 +64,7 @@ int	main(int argc, char** argv)
 	}
 	try
 	{
-		signal(SIGPIPE, SIG_IGN);
+		setupSignals();
 		signal(SIGTSTP, SIG_IGN);
 		Server	server(port, argv[2]);
 		server.run();

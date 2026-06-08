@@ -8,6 +8,7 @@
 #include <cstring>
 #include <cerrno>
 #include <map>
+#include "SignalHandler.hpp"
 
 Server::Server(int port, const std::string& password)
 	: _port(port),
@@ -99,7 +100,7 @@ void	Server::eventLoop()
 	int		maxFd;
 	int		readyCount;
 
-	while (_running) {
+	while (_running && !g_stopSignal) {
 		FD_ZERO(&readSet);
 		FD_ZERO(&writeSet);
 		maxFd = _serverFd;
@@ -115,6 +116,7 @@ void	Server::eventLoop()
 		handleReadableFds(readSet, maxFd);
 		handleWritableFds(writeSet, maxFd);
 	}
+	_running = false;
 }
 
 void	Server::prepareReadSet(fd_set& readSet, int& maxFd)

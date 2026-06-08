@@ -7,6 +7,7 @@ INCLUDES= -I includes -I includes/commands
 SRCS	= srcs/main.cpp \
 	srcs/Server.cpp \
 	srcs/Client.cpp \
+	srcs/SignalHandler.cpp \
 	srcs/ClientManager.cpp \
 	srcs/Channel.cpp \
 	srcs/ChannelManager.cpp \
