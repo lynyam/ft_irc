@@ -34,7 +34,7 @@ void ModeCommand::execute(Client& client, const CommandMessage& message,
     }
     if (!message.hasParam(1))
     {
-        client.appendOutput(ReplyBuilder::mode(client, channelName, channel->buildModeString(), ""));
+        client.appendOutput(ReplyBuilder::mode("server", channelName, channel->buildModeString(), ""));
         return;
     }
     if (!channel->hasClient(&client))
@@ -56,7 +56,7 @@ void ModeCommand::execute(Client& client, const CommandMessage& message,
 
     bool setting = (modeStr[0] == '+');
     char mode = modeStr[1];
-    std::string arg = message.paramCount() > 2 ? message.getParam(2) : "";
+    std::string arg = message.hasParam(2) ? message.getParam(2) : "";
 
     if (mode == 'i')
         channel->setInviteOnly(setting);
@@ -156,6 +156,8 @@ void ModeCommand::execute(Client& client, const CommandMessage& message,
         client.appendOutput(ReplyBuilder::errUnknownMode(client.getNickname(), mode));
         return;
     }
-
+    if (mode == 'i' || mode == 't' || ((mode == 'k' || mode == 'l') && !setting)) {
+        arg = "";
+    }
     channel->broadcast(ReplyBuilder::mode(client, channelName, modeStr, arg));
 }
