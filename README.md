@@ -1,4 +1,3 @@
-````md
 *This project has been created as part of the 42 curriculum by ynyamets, yurwang, lulmaruy.*
 
 # ft_irc
